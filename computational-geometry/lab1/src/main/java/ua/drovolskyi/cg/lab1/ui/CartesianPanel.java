@@ -3,78 +3,55 @@ package ua.drovolskyi.cg.lab1.ui;
 
 import ua.drovolskyi.cg.lab1.Graph;
 import ua.drovolskyi.cg.lab1.Graph.Edge;
+import ua.drovolskyi.cg.lab1.Graph.Vertex;
 import ua.drovolskyi.cg.lab1.Point;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
-public class Cartesian {
-    public static void main(String[] args) {
-        CartesianFrame frame = new CartesianFrame();
-        frame.showUI();
+public class CartesianPanel extends JPanel {
+    private final PixelPoint X_AXIS_START = new PixelPoint(50, 600);
+    private final PixelPoint X_AXIS_END = new PixelPoint(600, 600);
+    private final PixelPoint Y_AXIS_START = new PixelPoint(50, 600);
+    private final PixelPoint Y_AXIS_END = new PixelPoint(50, 50);
 
-        frame.panel.drawPoint(new Point(1.5, 1.5));
-        frame.panel.drawEdge(new Edge(1,
-                new Graph.Vertex(1, new Point(1.0, 1.0)),
-                new Graph.Vertex(2, new Point(1.0, 5.0))
-                ));
-    }
-}
-
-class CartesianFrame extends JFrame {
-    CartesianPanel panel;
-
-    public CartesianFrame() {
-        panel = new CartesianPanel();
-        add(panel);
-    }
-
-    public void showUI() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("Cartesian");
-        setSize(700, 700);
-        setVisible(true);
-    }
-}
-
-class CartesianPanel extends JPanel {
-    public final PixelPoint X_AXIS_START = new PixelPoint(50, 600);
-    public final PixelPoint X_AXIS_END = new PixelPoint(600, 600);
-    public final PixelPoint Y_AXIS_START = new PixelPoint(50, 600);
-    public final PixelPoint Y_AXIS_END = new PixelPoint(50, 50);
-
-    public final int X_AXIS_NUMBER_OF_COORDS = 10; // number of int coords on X axis
-    public final int Y_AXIS_NUMBER_OF_COORDS = 20; // number of int coords on X axis
+    private final int X_AXIS_NUMBER_OF_COORDS = 10; // number of int coords on X axis
+    private final int Y_AXIS_NUMBER_OF_COORDS = 20; // number of int coords on X axis
 
     //arrows of axis are represented with "hipotenuse" of
     //triangle
     // now we are define length of cathetas of that triangle
-    public static final int FIRST_LENGHT = 10;
-    public static final int SECOND_LENGHT = 5;
+    private static final int FIRST_LENGHT = 10;
+    private static final int SECOND_LENGHT = 5;
 
     // size of start coordinate lenght
-    public static final int ORIGIN_COORDINATE_LENGHT = 6;
+    private static final int ORIGIN_COORDINATE_LENGHT = 6;
 
     // distance of coordinate strings from axis
-    public static final int AXIS_STRING_DISTANCE = 20;
+    private static final int AXIS_STRING_DISTANCE = 20;
 
     private final int LENGTH; // is number of pixels between coordinates i and (i+1) on Cartesian plane
 
-    private List<Point> points = new ArrayList<>();
-    private List<Graph.Edge> edges = new ArrayList<>();
+    private List<Vertex> vertices = new ArrayList<>();
+    private List<Edge> edges = new ArrayList<>();
 
     public CartesianPanel(){
         int xLength = Math.abs(X_AXIS_END.getX() - X_AXIS_START.getX()) / X_AXIS_NUMBER_OF_COORDS;
         int yLength = Math.abs(Y_AXIS_START.getY() - Y_AXIS_START.getX()) / Y_AXIS_NUMBER_OF_COORDS;
         LENGTH = Math.min(xLength, yLength);
     }
-    public void drawPoint(Point point) {
-        points.add(point);
+
+    public void drawGraph(Graph g){
+        vertices.addAll(Arrays.asList(g.getVertices()));
+        edges.addAll(Arrays.asList(g.getEdges()));
+        repaint();
+    }
+
+    public void drawVertex(Vertex v) {
+        vertices.add(v);
         repaint();
     }
 
@@ -83,9 +60,9 @@ class CartesianPanel extends JPanel {
         repaint();
     }
 
-    private void drawPointImpl(Point point, Graphics g) {
+    private void drawVertexImpl(Vertex v, Graphics g) {
         final int pointDiameter = 5;
-        PixelPoint p = toPixelPoint(point, pointDiameter);
+        PixelPoint p = toPixelPoint(v.getCoords(), pointDiameter);
         g.fillOval(p.getX(), p.getY(), pointDiameter, pointDiameter);
     }
 
@@ -152,33 +129,35 @@ class CartesianPanel extends JPanel {
         }
 
         // draw points
-        for(Point p : points){
-            drawPointImpl(p, g);
+        for(Vertex v : vertices){
+            drawVertexImpl(v, g);
         }
 
+        // draw edges
         for(Edge e : edges){
             drawEdgeImpl(e, g);
         }
     }
-}
 
 
-class PixelPoint {
-    public Integer x;
-    public Integer y;
+    public static class PixelPoint {
+        public Integer x;
+        public Integer y;
 
-    public PixelPoint(int x, int y){
-        this.x=x;
-        this.y=y;
+        public PixelPoint(int x, int y){
+            this.x=x;
+            this.y=y;
+        }
+
+        public Integer getX(){
+            return x;
+        }
+
+        public Integer getY(){
+            return y;
+        }
     }
 
-    public Integer getX(){
-        return x;
-    }
-
-    public Integer getY(){
-        return y;
-    }
 }
 
 

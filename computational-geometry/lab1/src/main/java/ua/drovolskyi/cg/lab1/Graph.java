@@ -16,17 +16,12 @@ public class Graph {
             DoublyConnectedEdgeList.Vertex rawStartVertex = rawEdge.getStart();
             DoublyConnectedEdgeList.Vertex rawEndVertex = rawEdge.getEnd();
 
-            Boolean startVertexExisted = true;
-            Boolean endVertexExisted = true;
-
             // insert vertices in array if they haven't been inserted before
             if(vertices[rawStartVertex.getId()] == null) {
-                startVertexExisted = false;
                 vertices[rawStartVertex.getId()] = new Vertex(
                         rawStartVertex.getId(), rawStartVertex.getCoords());
             }
             if(vertices[rawEndVertex.getId()] == null) {
-                endVertexExisted = false;
                 vertices[rawEndVertex.getId()] = new Vertex(
                         rawEndVertex.getId(), rawEndVertex.getCoords());
             }
@@ -38,13 +33,45 @@ public class Graph {
             edges[rawEdge.getId()] = new Edge(rawEdge.getId(), start, end);
 
             // add input and output edges for vertices
-            if(!startVertexExisted){
-                start.addOutputEdge(edges[rawEdge.getId()]);
-            }
-            if(!endVertexExisted){
-                end.addInputEdge(edges[rawEdge.getId()]);
-            }
+            start.addOutputEdge(edges[rawEdge.getId()]);
+            end.addInputEdge(edges[rawEdge.getId()]);
         }
+    }
+
+    public Vertex[] getVertices(){
+        return vertices;
+    }
+
+    public Edge[] getEdges(){
+        return edges;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("Graph{\n");
+        sb.append("Vertices:\n");
+        for(Vertex v : vertices){
+            sb.append(v);
+            sb.append(" Input edges: ");
+            sb.append(v.getInputEdges());
+            sb.append(", ");
+            sb.append(" Output edges: ");
+            sb.append(v.getOutputEdges());
+            sb.append("\n");
+        }
+        sb.append("\n");
+
+        sb.append("Edges:\n");
+        for(Edge e : edges){
+            sb.append(e);
+            sb.append("\n");
+        }
+        sb.append("\n");
+
+
+        sb.append("}");
+        return sb.toString();
     }
 
     private static Double calcLength(Edge e){
@@ -98,6 +125,15 @@ public class Graph {
         public Collection<Edge> getOutputEdges(){
             return outputEdges.getEdges();
         }
+
+        @Override
+        public String toString(){
+            return "{" +
+                    id +
+                    ", " +
+                    coords +
+                    "}";
+        }
     }
 
     public static class Edge{
@@ -127,6 +163,19 @@ public class Graph {
         public void setWeight(Integer weight){
             this.weight = weight;
         }
+
+        @Override
+        public String toString(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            sb.append(id);
+            sb.append(", ");
+            sb.append(start.getId());
+            sb.append(" -> ");
+            sb.append(end.getId());
+            sb.append("}");
+            return sb.toString();
+        }
     }
 
     private static abstract class EdgeSet{
@@ -148,6 +197,26 @@ public class Graph {
             return edges.values();
         }
 
+        @Override
+        public String toString(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            Collection<Edge> edgesList = getEdges();
+            for(Edge e: edgesList){
+                sb.append(e.toString());
+                sb.append(", ");
+            }
+            if(edgesList.isEmpty()){
+                sb.append("EMPTY");
+            }
+            else{
+                sb.delete(sb.length()-2, sb.length()-1);
+            }
+            sb.append("}");
+
+            return sb.toString();
+        }
+
         protected abstract Double calcAngle(Edge e);
     }
 
@@ -163,7 +232,7 @@ public class Graph {
             Double nom = calcDistance(e.getStart().getCoords(),
                     new Point(e.getStart().getCoords().getX(), e.getEnd().getCoords().getY()));
 
-            Double angle = Math.asin(nom / denom);
+            Double angle = Math.toDegrees(Math.asin(nom / denom));
 
             if(Double.compare(e.getStart().getCoords().getX(), e.getEnd().getCoords().getX()) > 0){
                 angle = 180 - angle;
@@ -181,10 +250,10 @@ public class Graph {
         @Override
         protected Double calcAngle(Edge e){
             Double denom = calcLength(e);
-            Double nom = calcDistance(e.getStart().getCoords(),
+            Double nom = calcDistance(e.getEnd().getCoords(),
                     new Point(e.getEnd().getCoords().getX(), e.getStart().getCoords().getY()));
 
-            Double angle = Math.asin(nom / denom);
+            Double angle = Math.toDegrees(Math.asin(nom / denom));
 
             if(Double.compare(e.getStart().getCoords().getX(), e.getEnd().getCoords().getX()) < 0){
                 angle = 180 - angle;

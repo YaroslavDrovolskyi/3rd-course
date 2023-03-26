@@ -7,8 +7,9 @@ public class DoublyConnectedEdgeList {
     private List<Edge> edges;
     private Integer numberOfVertices = 0;
 
-    public DoublyConnectedEdgeList(List<Edge> edges){
+    public DoublyConnectedEdgeList(List<Edge> edges, Integer numberOfVertices){
         this.edges = edges;
+        this.numberOfVertices = numberOfVertices;
     }
 
     public List<Edge> getEdges() {
