@@ -19,4 +19,10 @@ public class GeometricUtils {
             return 0;
         }
     }
+
+    public static double calcDistance(Point start, Point end){
+        return Math.sqrt((end.getX() - start.getX()) * (end.getX() - start.getX()) +
+                (end.getY() - start.getY()) * (end.getY() - start.getY()));
+
+    }
 }

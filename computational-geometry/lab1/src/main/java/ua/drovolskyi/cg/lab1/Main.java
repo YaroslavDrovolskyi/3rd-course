@@ -40,7 +40,10 @@ public class Main{
         };
 
         Graph graph = new Graph(vertices, edges);
+        System.out.println("\n\n\nIs graph correct: "+ GraphUtils.isCorrect(graph));
+        System.out.println("Is graph regular: "+ GraphUtils.isRegular(graph) + "\n\n\n");
 
+        // regularizing
         System.out.println("GRAPH BEFORE REGULARIZING:");
         System.out.println(graph + "\n\n");
 
@@ -57,6 +60,16 @@ public class Main{
         CartesianFrame frame2 = new CartesianFrame();
         frame2.getPanel().drawGraph(graph);
         frame2.showUI();
+
+        System.out.println("\n\n\nIs graph regular: "+ GraphUtils.isRegular(graph) + "\n\n\n");
+
+
+
+        GraphUtils.balanceByWeight(graph);
+        System.out.println("\n\n\nGraph after balance: ");
+        System.out.println(graph);
+        System.out.println("Is graph balanced by weigh: " + GraphUtils.isBalancedByWeight(graph));
+
     }
 
 

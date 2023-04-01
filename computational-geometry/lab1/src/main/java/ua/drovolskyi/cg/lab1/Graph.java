@@ -81,6 +81,9 @@ public class Graph {
         end.addInputEdge(e);
     }
 
+    /*
+        Returns vertices in ascending order of their ID's
+     */
     public Collection<Vertex> getVertices(){
         return vertices.values();
     }
@@ -118,18 +121,7 @@ public class Graph {
     }
 
     private static Double calcLength(Edge e){
-        return calcDistance(e.start.coords, e.end.coords);
-    }
-
-    private static double calcDistance(Point start, Point end){
-        return Math.sqrt((end.getX() - start.getX()) * (end.getX() - start.getX()) +
-                (end.getY() - start.getY()) * (end.getY() - start.getY()));
-
-    }
-
-
-    public void regularise(){
-
+        return GeometricUtils.calcDistance(e.start.coords, e.end.coords);
     }
 
     public static class Vertex{
@@ -175,6 +167,22 @@ public class Graph {
 
         public Collection<Edge> getOutputEdges(){
             return outputEdges.getEdges();
+        }
+
+        public Edge getLeftInputEdge(){
+            return inputEdges.getFirstEdge();
+        }
+
+        public Edge getLeftOutputEdge(){
+            return outputEdges.getFirstEdge();
+        }
+
+        public int getInputEdgesWeight(){
+            return inputEdges.getWeight();
+        }
+
+        public int getOutputEdgesWeight(){
+            return outputEdges.getWeight();
         }
 
         @Override
@@ -228,13 +236,15 @@ public class Graph {
             sb.append(start.getId());
             sb.append(" -> ");
             sb.append(end.getId());
+            sb.append(", ");
+            sb.append(this.weight);
             sb.append("}");
             return sb.toString();
         }
     }
 
     private static abstract class EdgeSet{
-        private TreeMap<Double, Edge> edges = new TreeMap<>();
+        private final TreeMap<Double, Edge> edges = new TreeMap<>();
 
         public void addEdge(Edge e){
             Double angle = calcAngle(e);
@@ -254,6 +264,18 @@ public class Graph {
 
         public Collection<Edge> getEdges(){
             return edges.values();
+        }
+
+        public Edge getFirstEdge(){
+            return edges.firstEntry().getValue();
+        }
+
+        public int getWeight(){
+            int weight = 0;
+            for(Edge e : edges.values()){
+                weight += e.getWeight();
+            }
+            return weight;
         }
 
         @Override
@@ -288,7 +310,7 @@ public class Graph {
         @Override
         protected Double calcAngle(Edge e){
             Double denom = calcLength(e);
-            Double nom = calcDistance(e.getStart().getCoords(),
+            Double nom = GeometricUtils.calcDistance(e.getStart().getCoords(),
                     new Point(e.getStart().getCoords().getX(), e.getEnd().getCoords().getY()));
 
             Double angle = Math.toDegrees(Math.asin(nom / denom));
@@ -309,7 +331,7 @@ public class Graph {
         @Override
         protected Double calcAngle(Edge e){
             Double denom = calcLength(e);
-            Double nom = calcDistance(e.getEnd().getCoords(),
+            Double nom = GeometricUtils.calcDistance(e.getEnd().getCoords(),
                     new Point(e.getEnd().getCoords().getX(), e.getStart().getCoords().getY()));
 
             Double angle = Math.toDegrees(Math.asin(nom / denom));
