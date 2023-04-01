@@ -18,7 +18,7 @@ public class CartesianPanel extends JPanel {
     private final PixelPoint Y_AXIS_START = new PixelPoint(50, 600);
     private final PixelPoint Y_AXIS_END = new PixelPoint(50, 50);
 
-    private final int X_AXIS_NUMBER_OF_COORDS = 10; // number of int coords on X axis
+    private final int X_AXIS_NUMBER_OF_COORDS = 20; // number of int coords on X axis
     private final int Y_AXIS_NUMBER_OF_COORDS = 20; // number of int coords on X axis
 
     //arrows of axis are represented with "hipotenuse" of
@@ -45,8 +45,8 @@ public class CartesianPanel extends JPanel {
     }
 
     public void drawGraph(Graph g){
-        vertices.addAll(Arrays.asList(g.getVertices()));
-        edges.addAll(Arrays.asList(g.getEdges()));
+        vertices.addAll(g.getVertices());
+        edges.addAll(g.getEdges());
         repaint();
     }
 
@@ -60,17 +60,13 @@ public class CartesianPanel extends JPanel {
         repaint();
     }
 
-    private void drawVertexImpl(Vertex v, Graphics g) {
-        final int pointDiameter = 5;
-        PixelPoint p = toPixelPoint(v.getCoords(), pointDiameter);
-        g.fillOval(p.getX(), p.getY(), pointDiameter, pointDiameter);
+    public void clear(){
+        this.vertices.clear();
+        this.edges.clear();
+        repaint();
     }
 
-    private void drawEdgeImpl(Edge edge, Graphics g) {
-        PixelPoint start = toPixelPoint(edge.getStart().getCoords(), 0);
-        PixelPoint end = toPixelPoint(edge.getEnd().getCoords(), 0);
-        g.drawLine(start.getX(), start.getY(), end.getX(), end.getY());
-    }
+
 
     private PixelPoint toPixelPoint(Point p, int pointDiameter){
         final int x = (int)Math.round(X_AXIS_START.getX() + (p.getX() * LENGTH) - (double)pointDiameter / 2);
@@ -137,6 +133,18 @@ public class CartesianPanel extends JPanel {
         for(Edge e : edges){
             drawEdgeImpl(e, g);
         }
+    }
+
+    private void drawVertexImpl(Vertex v, Graphics g) {
+        final int pointDiameter = 5;
+        PixelPoint p = toPixelPoint(v.getCoords(), pointDiameter);
+        g.fillOval(p.getX(), p.getY(), pointDiameter, pointDiameter);
+    }
+
+    private void drawEdgeImpl(Edge edge, Graphics g) {
+        PixelPoint start = toPixelPoint(edge.getStart().getCoords(), 0);
+        PixelPoint end = toPixelPoint(edge.getEnd().getCoords(), 0);
+        g.drawLine(start.getX(), start.getY(), end.getX(), end.getY());
     }
 
 

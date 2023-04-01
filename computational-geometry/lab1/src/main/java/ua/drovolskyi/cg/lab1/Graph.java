@@ -3,47 +3,90 @@ package ua.drovolskyi.cg.lab1;
 import java.util.*;
 
 public class Graph {
-    private Vertex[] vertices = null;
-    private Edge[] edges = null;
+    private final AbstractMap<Integer, Vertex> vertices = new TreeMap<>();
+    private final AbstractMap<Integer, Edge> edges = new TreeMap<>();
+
+    public Graph(Vertex[] vertices, Edge[] edges){
+        for(Vertex v : vertices){
+            if(this.vertices.containsKey(v.getId())){
+                throw new RuntimeException("Vertex with given ID is already exist");
+            }
+            this.vertices.put(v.getId(), v);
+        }
+
+        for(Edge e : edges){
+            addEdgeImpl(e);
+        }
+    }
 
 
     public Graph(DoublyConnectedEdgeList list){
-        vertices = new Vertex[list.getNumberOfVertices()];
-        edges = new Edge[list.getNumberOfEdges()];
-
         List<DoublyConnectedEdgeList.Edge> rawEdges = list.getEdges();
         for(DoublyConnectedEdgeList.Edge rawEdge : rawEdges){
             DoublyConnectedEdgeList.Vertex rawStartVertex = rawEdge.getStart();
             DoublyConnectedEdgeList.Vertex rawEndVertex = rawEdge.getEnd();
 
             // insert vertices in array if they haven't been inserted before
-            if(vertices[rawStartVertex.getId()] == null) {
-                vertices[rawStartVertex.getId()] = new Vertex(
-                        rawStartVertex.getId(), rawStartVertex.getCoords());
+            if(!vertices.containsKey(rawStartVertex.getId())) {
+                vertices.put(rawStartVertex.getId(),
+                        new Vertex(rawStartVertex.getId(), rawStartVertex.getCoords()));
             }
-            if(vertices[rawEndVertex.getId()] == null) {
-                vertices[rawEndVertex.getId()] = new Vertex(
-                        rawEndVertex.getId(), rawEndVertex.getCoords());
+            if(!vertices.containsKey(rawEndVertex.getId())) {
+                vertices.put(rawEndVertex.getId(),
+                        new Vertex(rawEndVertex.getId(), rawEndVertex.getCoords()));
             }
 
-            Vertex start = vertices[rawStartVertex.getId()];
-            Vertex end = vertices[rawEndVertex.getId()];
+            Vertex start = vertices.get(rawStartVertex.getId());
+            Vertex end = vertices.get(rawEndVertex.getId());
 
             // initialize edge
-            edges[rawEdge.getId()] = new Edge(rawEdge.getId(), start, end);
+            Edge edge = new Edge(rawEdge.getId(), start, end);
 
-            // add input and output edges for vertices
-            start.addOutputEdge(edges[rawEdge.getId()]);
-            end.addInputEdge(edges[rawEdge.getId()]);
+            addEdgeImpl(edge);
         }
     }
 
-    public Vertex[] getVertices(){
-        return vertices;
+    public int numberOfVertices(){
+        return vertices.size();
     }
 
-    public Edge[] getEdges(){
-        return edges;
+    public void addEdge(Vertex start, Vertex end){
+        int newEdgeId = Collections.max(edges.keySet()) + 1;
+        Edge edge = new Edge(newEdgeId, start, end);
+
+        addEdgeImpl(edge);
+    }
+
+    private void addEdgeImpl(Edge e){
+        Vertex start = e.getStart();
+        Vertex end = e.getEnd();
+
+        // check if edge is exist
+        if(edges.containsKey(e.getId())){
+            throw new RuntimeException("Edge with given ID is already exist");
+        }
+        // check if start and end vertices exist
+        if(!vertices.containsKey(start.getId())){
+            throw new RuntimeException("Start vertex of this edge does not exist");
+        }
+        if(!vertices.containsKey(end.getId())){
+            throw new RuntimeException("End vertex of this edge does not exist");
+        }
+
+        // insert new edge into set of edges
+        edges.put(e.getId(), e);
+
+        // insert new edge into sets OUT(start) and IN(end)
+        start.addOutputEdge(e);
+        end.addInputEdge(e);
+    }
+
+    public Collection<Vertex> getVertices(){
+        return vertices.values();
+    }
+
+    public Collection<Edge> getEdges(){
+        return edges.values();
     }
 
     @Override
@@ -51,7 +94,7 @@ public class Graph {
         StringBuilder sb = new StringBuilder();
         sb.append("Graph{\n");
         sb.append("Vertices:\n");
-        for(Vertex v : vertices){
+        for(Vertex v : getVertices()){
             sb.append(v);
             sb.append(" Input edges: ");
             sb.append(v.getInputEdges());
@@ -63,7 +106,7 @@ public class Graph {
         sb.append("\n");
 
         sb.append("Edges:\n");
-        for(Edge e : edges){
+        for(Edge e : getEdges()){
             sb.append(e);
             sb.append("\n");
         }
@@ -100,6 +143,14 @@ public class Graph {
             this.coords = coords;
             inputEdges = new InputEdgeSet();
             outputEdges = new OutputEdgeSet();
+        }
+
+        public Integer getNumberOfInputEdges(){
+            return inputEdges.size();
+        }
+
+        public Integer getNumberOfOutputEdges(){
+            return outputEdges.size();
         }
 
         public Integer getId() {
@@ -148,6 +199,10 @@ public class Graph {
             this.end = end;
         }
 
+        public Integer getId(){
+            return id;
+        }
+
         public Vertex getStart(){
             return start;
         }
@@ -187,6 +242,10 @@ public class Graph {
                 throw new RuntimeException("EdgeSet.addEdge(): Tried to insert edge with same angle");
             }
             edges.put(angle, e);
+        }
+
+        public Integer size(){
+            return edges.size();
         }
 
         public Boolean isEmpty(){
