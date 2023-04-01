@@ -52,8 +52,7 @@ public class Main{
         GraphRegularizator regularizator = new GraphRegularizator();
         regularizator.regularize(graph);
 
-        System.out.println("\n\n\nGRAPH AFTER REGULARIZING: \n" + graph);
-        System.out.println(graph + "\n\n");
+        System.out.println("\n\n\nGRAPH AFTER REGULARIZING: \n" + graph + "\n\n");
 
         CartesianFrame frame2 = new CartesianFrame();
         frame2.getPanel().drawGraph(graph);
