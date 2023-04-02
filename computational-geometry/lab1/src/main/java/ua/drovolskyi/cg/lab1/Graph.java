@@ -185,6 +185,12 @@ public class Graph {
             return outputEdges.getWeight();
         }
 
+        // returns first left edge with weight > 0
+        // if all edges have weight = 0, then null returns
+        public Edge getLeftWeightEdge(){
+            return outputEdges.getFirstWeightEdge();
+        }
+
         @Override
         public String toString(){
             return "{" +
@@ -268,6 +274,17 @@ public class Graph {
 
         public Edge getFirstEdge(){
             return edges.firstEntry().getValue();
+        }
+
+        // returns first edge with weight > 0
+        // if all edges have weight = 0, then null returns
+        public Edge getFirstWeightEdge(){
+            for(Edge e : edges.values()){
+                if(e.getWeight() > 0){
+                    return e;
+                }
+            }
+            return null;
         }
 
         public int getWeight(){
