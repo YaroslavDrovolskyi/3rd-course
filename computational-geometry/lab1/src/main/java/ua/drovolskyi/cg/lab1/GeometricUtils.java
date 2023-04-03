@@ -25,4 +25,8 @@ public class GeometricUtils {
                 (end.getY() - start.getY()) * (end.getY() - start.getY()));
 
     }
+
+    public static boolean isInSegment(Point a, Point b, Point c){
+        return MathUtils.areEqual(calcDistance(a, c) + calcDistance(c, b), calcDistance(a,b), 1e-6);
+    }
 }

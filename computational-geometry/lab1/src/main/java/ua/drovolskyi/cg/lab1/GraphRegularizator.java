@@ -23,11 +23,11 @@ import ua.drovolskyi.cg.lab1.Graph.Edge;
  */
 
 public class GraphRegularizator {
-    private Status status;
+//    private Status status;
 
     // regularize graph
-    public void regularize(Graph graph){
-        status = new Status();
+    public static void regularize(Graph graph){
+        Status status = new Status();
         // when top-down remove from status all edges that start in current vertex
         // localize it and add all edges
         // if edges was the last in status and no edges is in IN(v) than we should store this vertex v;

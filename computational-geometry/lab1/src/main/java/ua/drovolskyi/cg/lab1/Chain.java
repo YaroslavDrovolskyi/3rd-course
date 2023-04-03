@@ -22,4 +22,8 @@ public class Chain {
         return vertices.values().toArray(new Graph.Vertex[0]);
     }
 
+    public Graph.Edge getEdge(int index){
+        return edges.get(index);
+    }
+
 }
