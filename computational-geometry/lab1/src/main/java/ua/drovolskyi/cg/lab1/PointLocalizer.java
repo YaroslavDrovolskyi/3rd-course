@@ -24,6 +24,7 @@ public class PointLocalizer {
         if(!GraphUtils.isRegular(graph)){
             GraphRegularizator.regularize(graph);
         }
+        System.out.println("Graph after regularization: " + graph);
 
         // balance weight of edges in graph
         balanceByWeight(graph);

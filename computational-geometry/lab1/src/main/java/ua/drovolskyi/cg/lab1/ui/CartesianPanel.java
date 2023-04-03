@@ -139,6 +139,8 @@ public class CartesianPanel extends JPanel {
         final int pointDiameter = 5;
         PixelPoint p = toPixelPoint(v.getCoords(), pointDiameter);
         g.fillOval(p.getX(), p.getY(), pointDiameter, pointDiameter);
+        // draw ID of vertex
+        g.drawString(Integer.toString(v.getId()), p.getX()-5, p.getY()-3);
     }
 
     private void drawEdgeImpl(Edge edge, Graphics g) {

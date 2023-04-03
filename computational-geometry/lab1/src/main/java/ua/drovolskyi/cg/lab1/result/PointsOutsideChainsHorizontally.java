@@ -26,4 +26,10 @@ public class PointsOutsideChainsHorizontally extends PointLocalizationResult {
     public Graph.Edge getEdge() {
         return edge;
     }
+
+    @Override
+    public String toString(){
+        String sideStr = (side == -1) ? "left" : "right";
+        return "Point " + point + " is "  + sideStr + " to edge " + edge;
+    }
 }

@@ -187,7 +187,7 @@ public class Graph {
 
         // returns first left edge with weight > 0
         // if all edges have weight = 0, then null returns
-        public Edge getLeftWeightEdge(){
+        public Edge getLeftOutputWeightEdge(){
             return outputEdges.getFirstWeightEdge();
         }
 

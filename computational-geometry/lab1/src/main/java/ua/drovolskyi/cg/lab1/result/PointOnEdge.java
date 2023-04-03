@@ -20,4 +20,9 @@ public class PointOnEdge extends PointLocalizationResult {
     public Graph.Edge getEdge() {
         return edge;
     }
+
+    @Override
+    public String toString(){
+        return "Point " + point + " is on edge " + edge;
+    }
 }

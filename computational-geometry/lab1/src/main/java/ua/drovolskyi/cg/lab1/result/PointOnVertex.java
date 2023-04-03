@@ -19,4 +19,9 @@ public class PointOnVertex extends PointLocalizationResult {
     public Graph.Vertex getVertex() {
         return vertex;
     }
+
+    @Override
+    public String toString(){
+        return "Point " + point + " is on vertex " + vertex;
+    }
 }

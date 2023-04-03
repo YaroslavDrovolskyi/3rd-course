@@ -26,4 +26,9 @@ public class PointBetweenChains extends PointLocalizationResult {
     public Graph.Edge getRightEdge() {
         return rightEdge;
     }
+
+    @Override
+    public String toString(){
+        return "Point " + point + " is between edges " + leftEdge + " and " + rightEdge;
+    }
 }

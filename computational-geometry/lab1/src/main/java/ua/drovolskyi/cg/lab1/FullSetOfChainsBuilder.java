@@ -37,9 +37,13 @@ public class FullSetOfChainsBuilder {
     }
 
     private void buildChainImpl(Chain chain, Graph.Vertex v){
-        Graph.Edge leftOutputEdge = v.getLeftOutputEdge();
+        if(isLastVertex(v)){ // if it is last vertex
+            return;
+        }
 
-        // if it is last vertex, or no available edges to build chain
+        Graph.Edge leftOutputEdge = v.getLeftOutputWeightEdge();
+
+        // if no available edges to build chain
         if(leftOutputEdge == null){
             return;
         }
@@ -48,5 +52,9 @@ public class FullSetOfChainsBuilder {
         chain.addEdge(leftOutputEdge);
         leftOutputEdge.setWeight(leftOutputEdge.getWeight() - 1);
         buildChainImpl(chain, leftOutputEdge.getEnd());
+    }
+
+    private boolean isLastVertex(Graph.Vertex v){
+        return v.getId().equals(vertices[vertices.length - 1].getId());
     }
 }

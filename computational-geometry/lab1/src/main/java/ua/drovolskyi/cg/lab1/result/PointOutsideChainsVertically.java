@@ -19,4 +19,10 @@ public class PointOutsideChainsVertically extends PointLocalizationResult {
     public int getSide() {
         return side;
     }
+
+    @Override
+    public String toString(){
+        String sideString = (side == -1) ? "under" : "above";
+        return "Point " + point + " is " + sideString + " the graph";
+    }
 }
