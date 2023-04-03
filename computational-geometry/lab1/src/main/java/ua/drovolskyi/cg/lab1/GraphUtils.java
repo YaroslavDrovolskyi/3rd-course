@@ -77,41 +77,7 @@ public class GraphUtils {
         return validInputEdgeExists && validOutputEdgeExists;
     }
 
-    // Balance graph by weights of edges
-    // graph must be regular
-    // graph must be already initialized with weights of all edges = 1
-    public static void balanceByWeight(Graph graph){
-        Graph.Vertex[] vertices = graph.getVertices().toArray(new Graph.Vertex[0]);
-        Graph.Edge[] edges = graph.getEdges().toArray(new Graph.Edge[0]);
 
-        // initializing
-        for(Graph.Edge e : edges){
-            e.setWeight(1);
-        }
-
-        // first pass (from top to down)
-        for(int i = 1; i < vertices.length - 1; i++){
-            Graph.Vertex v = vertices[i];
-            int inputWeight = v.getInputEdgesWeight();
-            int outputWeight = v.getOutputEdgesWeight();
-            Graph.Edge leftOutputEdge = v.getLeftOutputEdge();
-            if(inputWeight > outputWeight){
-                leftOutputEdge.setWeight(inputWeight - outputWeight + 1);
-            }
-        }
-
-        // second pass (from down to top)
-        for(int i = vertices.length - 2; i >= 1; i--){
-            Graph.Vertex v = vertices[i];
-            int inputWeight = v.getInputEdgesWeight();
-            int outputWeight = v.getOutputEdgesWeight();
-            Graph.Edge leftInputEdge = v.getLeftInputEdge();
-            if(outputWeight > inputWeight){
-                int w = outputWeight - inputWeight + leftInputEdge.getWeight();
-                leftInputEdge.setWeight(w);
-            }
-        }
-    }
 
     public static boolean isBalancedByWeight(Graph graph){
         Graph.Vertex[] vertices = graph.getVertices().toArray(new Graph.Vertex[0]);

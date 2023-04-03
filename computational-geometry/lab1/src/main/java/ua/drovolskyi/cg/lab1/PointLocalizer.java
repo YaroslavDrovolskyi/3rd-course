@@ -1,12 +1,19 @@
 package ua.drovolskyi.cg.lab1;
 
+import ua.drovolskyi.cg.lab1.result.*;
+
 import java.util.List;
 
 public class PointLocalizer {
-
-    public static void localize(DoublyConnectedEdgeList edgeList, Point p){
+    /**
+     * Performs preliminary processing before chains localization algorithm.
+     * Builds full set of chains for graph (planar subdivision).
+     * <p>Time complexity: O(n*log(n)), where n is number of vertices in graph</p>
+     * @param edgeList is a PLANAR graph as a doubly connected edge list structure
+     * @return full set of chains as list of chains sorted from leftmost chain to rightmost chain
+     */
+    public static Chain[] buildFullSetOfChains(DoublyConnectedEdgeList edgeList){
         Graph graph = new Graph(edgeList);
-        Graph.Vertex[] vertices = graph.getVertices().toArray(new Graph.Vertex[0]);
 
         if(!GraphUtils.isCorrect(graph)){
             throw new RuntimeException("Graph must be correct: correct order of indexes of vertices," +
@@ -18,126 +25,189 @@ public class PointLocalizer {
             GraphRegularizator.regularize(graph);
         }
 
-        // check if p is on vertex
-        Graph.Vertex pVertexLocation = findVertexWherePointLies(graph, p);
-        if(pVertexLocation != null){
-            ///////////////////////////////////// return corresponding result
-        }
-
-        // check if p is on edge
-        Graph.Edge pEdgeLocation = findEdgeWherePointLies(graph, p);
-        if(pEdgeLocation != null){
-            //////////////////////////////////// return corresponding result
-        }
-
-        // if point is above or under the graph
-        if(p.getY() < vertices[0].getCoords().getY()
-                || p.getY() > vertices[vertices.length - 1].getCoords().getY()){
-            /////////////////// return result: point is out the graph
-        }
-
         // balance weight of edges in graph
-        GraphUtils.balanceByWeight(graph);
+        balanceByWeight(graph);
 
         // build full set of chains
         FullSetOfChainsBuilder chainsBuilder = new FullSetOfChainsBuilder();
-        Chain[] chains = chainsBuilder.build(graph).toArray(new Chain[0]);
+        return chainsBuilder.build(graph).toArray(new Chain[0]);
+    }
 
+    /**
+     * Performs the chain algorithm of localizing point on planar subdivision
+     * <p>Time complexity: O(log2(n)), where n is number of vertices in graph</p>
+     * @param chains is full set of chains of planar graph. chains in list must be sorted
+     *               from leftmost chain to rightmost chain
+     * @param p is point to localize
+     * @return
+     */
+    public static PointLocalizationResult localize(Chain[] chains, Point p){
+
+        // if point is above or under the graph
+        if(p.getY() < getStartVertex(chains).getCoords().getY()){
+            return resultPointOutsideChainsVertically(p, -1);
+        }
+        if(p.getY() > getEndVertex(chains).getCoords().getY()){
+            return resultPointOutsideChainsVertically(p, 1);
+        }
+
+        // if point is left or right to the graph
         if(relativePositionToChain(chains[0], p) == -1){
-            ///////////////////// return: the left to leftmost chain
-            /// also need to localize and determine edge
+           return resultPointOutsideChainsHorizontally(p, chains[0], -1);
         }
         if(relativePositionToChain(chains[chains.length - 1], p) == 1){
-            ///////////////////// return: the right to rightmost chain
-            /// also need to localize and determine edge
+            return resultPointOutsideChainsHorizontally(p, chains[chains.length - 1], 1);
         }
 
-        // point can't be on chain
-        // binary search
+
+        // binary search (find two chains where p is between them)
         int low = 0;
         int high = chains.length - 1;
         int mid = 0;
         while(high > low + 1){
             mid = (low + high) / 2;
-            if (relativePositionToChain(chains[mid], p) == -1){ // point is on left of mid-chain
+            if (relativePositionToChain(chains[mid], p) == -1){ // point is left to mid-chain
                 high = mid;
             }
-            else if (relativePositionToChain(chains[mid], p) == 1){ // point is on right to mid-chain
+            else if (relativePositionToChain(chains[mid], p) == 1){ // point is right to mid-chain
                 low = mid;
             }
-        }
-
-        ///////////////////// return that point is between chains [low] and [high]
-        /// need to determine edges of this two chains
-
-        /*
-            Types of results:
-                - (1) p is on vertex
-                - (2) p is on edge
-                - (3) p is above or under the graph
-                - (4) p is left to leftmost chain (chain + left + vertices)
-                - (4) p is right to rightmost chain (chain + right + vertices)
-                        (this and prev case handle situation when only one chain exists)
-                        (also they handled case when all chains are similar)
-                - (5) Usual case: p is between two chains (chains + 4 vertices)
-         */
-
-        // When some chains are similar then point never will be between them
-        // (because it is impossible, and point can't be on chain)
-        // so binary search at the end will give us two different chains, and the point will be between them
-
-
-
-        // + convert list to graph
-        // + check if graph is correct
-        // + check if graph is regular
-        // + regularize graph
-        // + check if point on edge or on vertex of graph
-
-
-        // + weight-balancing of graph
-        // + build full set of chains
-        // + localization point through chains (check when point is put of bounds of chains)
-            // (handle case when point is on edge (because new edges have been added during regularization))
-            // при локалізації додатковво перевіряти чи саме на ребрі лежить
-            // якщо ребро горизонтальне, то якщо нам показує що на прямій (ікси однакові), то треба перевірити ігреки
-            // і сказати зілва (point.y < edge.end.y) чи справа (point.y > edge.end.y)
-            // point can't be on chain because we have checked this
-        // build result
-    }
-
-    // return vertex where point lies on, or null if such vertex does not exist
-    public static Graph.Vertex findVertexWherePointLies(Graph graph, Point p){
-        Graph.Vertex[] vertices = graph.getVertices().toArray(new Graph.Vertex[0]);
-
-        for(Graph.Vertex v : vertices){
-            Point vCoords = v.getCoords();
-            if(MathUtils.areEqual(vCoords.getX(), p.getX(), 1e-6) &&
-                    MathUtils.areEqual(vCoords.getY(), p.getY(), 1e-6)){
-                return v;
+            else{ // if p is on mid-chain
+                return resultPointOnChain(p, chains[mid]);
             }
         }
-        return null;
+        // now we know that p is between chains[low] and chains[high] or on them
+
+        if(relativePositionToChain(chains[low], p) == 0){ // p is on chains[low]
+            return resultPointOnChain(p, chains[low]);
+        }
+        else if(relativePositionToChain(chains[high], p) == 0){ // p is on chains[high]
+            return resultPointOnChain(p, chains[high]);
+        }
+        else{ // point is exactly between chains
+            return resultPointBetweenChains(p, chains[low], chains[high]);
+        }
+
+
+        // ++ convert list to graph
+        // ++ check if graph is correct
+        // ++ check if graph is regular
+        // ++ regularize graph
+        // ++ weight-balancing of graph
+        // ++ build full set of chains
+
+        // ++ localization point through chains (check when point is put of bounds of chains)
+        // ++ build result
     }
 
-    // return edge where point lies on, or null if such edge does not exist
-    public static Graph.Edge findEdgeWherePointLies(Graph graph, Point p) {
+    /**
+     * Balance graph by weights of edges.
+     * After applying this function to graph we get that
+     * for each vertex v in graph following is true: weight(IN(v)) = weight(OUT(v)).
+     * @param graph is REGULAR graph
+     */
+    public static void balanceByWeight(Graph graph){
+        Graph.Vertex[] vertices = graph.getVertices().toArray(new Graph.Vertex[0]);
         Graph.Edge[] edges = graph.getEdges().toArray(new Graph.Edge[0]);
 
-        for (Graph.Edge e : edges) {
-            if (GeometricUtils.isInSegment(e.getStart().getCoords(), e.getEnd().getCoords(), p)) {
-                return e;
+        // initializing
+        for(Graph.Edge e : edges){
+            e.setWeight(1);
+        }
+
+        // first pass (from top to down)
+        for(int i = 1; i < vertices.length - 1; i++){
+            Graph.Vertex v = vertices[i];
+            int inputWeight = v.getInputEdgesWeight();
+            int outputWeight = v.getOutputEdgesWeight();
+            Graph.Edge leftOutputEdge = v.getLeftOutputEdge();
+            if(inputWeight > outputWeight){
+                leftOutputEdge.setWeight(inputWeight - outputWeight + 1);
             }
         }
 
-        return null;
+        // second pass (from down to top)
+        for(int i = vertices.length - 2; i >= 1; i--){
+            Graph.Vertex v = vertices[i];
+            int inputWeight = v.getInputEdgesWeight();
+            int outputWeight = v.getOutputEdgesWeight();
+            Graph.Edge leftInputEdge = v.getLeftInputEdge();
+            if(outputWeight > inputWeight){
+                int w = outputWeight - inputWeight + leftInputEdge.getWeight();
+                leftInputEdge.setWeight(w);
+            }
+        }
     }
 
-    // performs operation discrimination over chain and point p
-    // p shouldn't be above or under the chain
-    // p shouldn't be on any edge or any vertex (this case must be already handled)
-    // returns -1 when point is left to chain, and 1 when point is right to chain
-    public static Integer relativePositionToChain(Chain chain, Point p){
+
+    private static PointLocalizationResult resultPointOnChain(Point p, Chain chain){
+        // determine edge
+        int edgeIndex = localize(chain.getVertices(), p);
+        Graph.Edge edge = chain.getEdge(edgeIndex);
+
+        // if p is on some vertex of this edge
+        if(MathUtils.areEqual(edge.getStart().getCoords().getX(), p.getX(), 1e-6) &&
+                MathUtils.areEqual(edge.getStart().getCoords().getY(), p.getY(), 1e-6)){
+            return new PointOnVertex(p, edge.getStart());
+        }
+        if(MathUtils.areEqual(edge.getEnd().getCoords().getX(), p.getX(), 1e-6) &&
+                MathUtils.areEqual(edge.getEnd().getCoords().getY(), p.getY(), 1e-6)){
+            return new PointOnVertex(p, edge.getEnd());
+        }
+
+        // else p is on edge itself
+        return new PointOnEdge(p, edge);
+    }
+
+    // side=-1 when p is under chains, side=1 when p is above chains
+    private static PointLocalizationResult resultPointOutsideChainsVertically(Point p, int side){
+        return new PointOutsideChainsVertically(p, side);
+    }
+
+    // side=-1 when p is left to edge, side=1 when p is right to edge
+    private static PointLocalizationResult resultPointOutsideChainsHorizontally(
+            Point p, Chain chain, int side
+    ){
+        // determine edge
+        int edgeIndex = localize(chain.getVertices(), p);
+        Graph.Edge edge = chain.getEdge(edgeIndex);
+
+        return new PointsOutsideChainsHorizontally(p, edge, side);
+    }
+
+    private static PointLocalizationResult resultPointBetweenChains(Point p, Chain leftChain, Chain rightChain){
+        // determine edges
+        int leftEdgeIndex = localize(leftChain.getVertices(), p);
+        Graph.Edge leftEdge = leftChain.getEdge(leftEdgeIndex);
+
+        int rightEdgeIndex = localize(rightChain.getVertices(), p);
+        Graph.Edge rightEdge = rightChain.getEdge(rightEdgeIndex);
+
+        return new PointBetweenChains(p, leftEdge, rightEdge);
+    }
+
+    // returns vertex where all chains start
+    private static Graph.Vertex getStartVertex(Chain[] chains){
+        Graph.Vertex[] vertices = chains[0].getVertices();
+        return vertices[0];
+    }
+
+    // return vertex where all chains end
+    private static Graph.Vertex getEndVertex(Chain[] chains){
+        Graph.Vertex[] vertices = chains[0].getVertices();
+        return vertices[vertices.length - 1];
+    }
+
+    /**
+     * Performs operation discrimination over chain and point p in two steps:
+     * project all vertices of chain on OY axis, localize p between these projections, get edge;
+     * check on what side point lies relative to edge
+     * WARNING: p shouldn't be above or under the chain
+     * @param chain
+     * @param p
+     * @return -1 when point is left to chain, 1 when point is right to chain, and 0 when point is on chain
+     */
+    private static Integer relativePositionToChain(Chain chain, Point p){
         Graph.Vertex[] vertices = chain.getVertices();
 
         // first step (find edge)
@@ -150,6 +220,10 @@ public class PointLocalizer {
         Graph.Edge edge = chain.getEdge(edgeIndex);
 
         // second step (check if point is left or right to edge)
+        if(GeometricUtils.isInSegment(
+                edge.getStart().getCoords(), edge.getEnd().getCoords(), p)){
+            return 0; // point is on chain
+        }
         if(MathUtils.areEqual(edge.getStart().getCoords().getY(),
                 edge.getEnd().getCoords().getY(),1e-6)){ // if edge is horizontal
             if(p.getX() > edge.getEnd().getCoords().getX()){
@@ -165,11 +239,12 @@ public class PointLocalizer {
         }
     }
 
-
-    // localize point p using only y-coordinates
-    // vertices should be in correct order (from bottom to top)
-    // vertices must contain at least two vertices
-    // returns index of interval where p is located (where -1 means point is under the bottom vertex)
+    /**
+     * Localize point p in projections of vertices on OY axis
+     * @param vertices is array of vertices (vertices should be in correct order (from bottom to top))
+     * @param p
+     * @return index of interval where p is located (-1 means point is under the bottom vertex)
+     */
     private static Integer localize(Graph.Vertex[] vertices, Point p){
         // if point is outside the interval
         if(p.getY() < vertices[0].getCoords().getY()){
@@ -196,7 +271,3 @@ public class PointLocalizer {
     }
 
 }
-
-// abstract class PointLocalization
-// class CommonLocalization
-// class

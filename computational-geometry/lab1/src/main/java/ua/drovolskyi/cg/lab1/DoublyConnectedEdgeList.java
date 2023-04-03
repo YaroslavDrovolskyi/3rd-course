@@ -54,12 +54,12 @@ public class DoublyConnectedEdgeList {
         private Face left = null;
         private Face right = null;
 
-        public Edge(Integer id, Vertex start, Vertex end, Integer prevEdgeId, Integer nextEdgeId){
+        public Edge(Integer id, Vertex start, Vertex end){
             this.id = id;
             this.start = start;
             this.end = end;
-            this.prevEdgeId = prevEdgeId;
-            this.nextEdgeId = nextEdgeId;
+            this.prevEdgeId = -1;
+            this.nextEdgeId = -1;
         }
 
         public Integer getId() {

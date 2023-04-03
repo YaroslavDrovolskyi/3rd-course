@@ -6,6 +6,11 @@ import java.util.List;
 public class FullSetOfChainsBuilder {
     private Graph.Vertex[] vertices;
 
+    /**
+     * Builds full set of chains for planar REGULAR graph
+     * @param graph is REGULAR graph
+     * @return full set of chains as list of chains sorted from leftmost chain to rightmost chain
+     */
     public List<Chain> build(Graph graph){
         this.vertices = graph.getVertices().toArray(new Graph.Vertex[0]);
 
