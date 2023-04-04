@@ -2,14 +2,11 @@ package ua.drovolskyi.cg.lab1.ui;
 
 
 
-import javax.swing.JFrame;
+import ua.drovolskyi.cg.lab1.Chain;
+import ua.drovolskyi.cg.lab1.Graph;
+import ua.drovolskyi.cg.lab1.Point;
 
-class Cartesian {
-    public static void main(String[] args) {
-        CartesianFrame frame = new CartesianFrame();
-        frame.showUI();
-    }
-}
+import javax.swing.JFrame;
 
 public class CartesianFrame extends JFrame {
     private CartesianPanel panel;
@@ -19,15 +16,28 @@ public class CartesianFrame extends JFrame {
         add(panel);
     }
 
-    public void showUI() {
+    public void showUI(String title) {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("Cartesian");
+        setTitle(title);
         setSize(700, 700);
         setVisible(true);
     }
 
     public CartesianPanel getPanel(){
         return panel;
+    }
+
+    public static void displayGraph(Graph graph, String title){
+        CartesianFrame frame = new CartesianFrame();
+        frame.getPanel().drawGraph(graph);
+        frame.showUI(title);
+    }
+
+    public static void displayChainsAndPoint(Chain[] chains, Point p, String title){
+        CartesianFrame frame = new CartesianFrame();
+        frame.getPanel().drawChains(chains);
+        frame.getPanel().drawSpecialPoint(p);
+        frame.showUI(title);
     }
 }
 

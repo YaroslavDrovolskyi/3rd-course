@@ -29,6 +29,9 @@ public class PointBetweenChains extends PointLocalizationResult {
 
     @Override
     public String toString(){
-        return "Point " + point + " is between edges " + leftEdge + " and " + rightEdge;
+        return "Point " + point + " is between edges " +
+        "{" + leftEdge.getId() + ", " + leftEdge.getStart().getId() + " -> " + leftEdge.getEnd().getId() + "}" +
+        " and " +
+        "{" + rightEdge.getId() + ", " + rightEdge.getStart().getId() + " -> " + rightEdge.getEnd().getId() + "}";
     }
 }

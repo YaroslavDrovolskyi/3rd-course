@@ -1,6 +1,7 @@
 package ua.drovolskyi.cg.lab1.ui;
 
 
+import ua.drovolskyi.cg.lab1.Chain;
 import ua.drovolskyi.cg.lab1.Graph;
 import ua.drovolskyi.cg.lab1.Graph.Edge;
 import ua.drovolskyi.cg.lab1.Graph.Vertex;
@@ -35,8 +36,18 @@ public class CartesianPanel extends JPanel {
 
     private final int LENGTH; // is number of pixels between coordinates i and (i+1) on Cartesian plane
 
+    // colors
+    private Color[] availableColors = new Color[] {
+        Color.PINK, Color.ORANGE, Color.GREEN, Color.MAGENTA, Color.CYAN, Color.BLUE
+    };
+    private Color defaultColor = Color.BLACK;
+
+    // data to draw
     private List<Vertex> vertices = new ArrayList<>();
     private List<Edge> edges = new ArrayList<>();
+    private List<Point> specialPoints = new ArrayList<>();
+    private List<Chain> chains = new ArrayList<>();
+
 
     public CartesianPanel(){
         int xLength = Math.abs(X_AXIS_END.getX() - X_AXIS_START.getX()) / X_AXIS_NUMBER_OF_COORDS;
@@ -47,6 +58,16 @@ public class CartesianPanel extends JPanel {
     public void drawGraph(Graph g){
         vertices.addAll(g.getVertices());
         edges.addAll(g.getEdges());
+        repaint();
+    }
+
+    public void drawSpecialPoint(Point p){
+        specialPoints.add(p);
+        repaint();
+    }
+
+    public void drawChains(Chain[] inputChains){
+        chains.addAll(Arrays.asList(inputChains));
         repaint();
     }
 
@@ -66,8 +87,6 @@ public class CartesianPanel extends JPanel {
         repaint();
     }
 
-
-
     private PixelPoint toPixelPoint(Point p, int pointDiameter){
         final int x = (int)Math.round(X_AXIS_START.getX() + (p.getX() * LENGTH) - (double)pointDiameter / 2);
         final int y = (int)Math.round(Y_AXIS_START.getY() - (p.getY() * LENGTH) - (double)pointDiameter / 2);
@@ -84,6 +103,7 @@ public class CartesianPanel extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(defaultColor);
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
@@ -133,6 +153,18 @@ public class CartesianPanel extends JPanel {
         for(Edge e : edges){
             drawEdgeImpl(e, g);
         }
+
+        // draw chains
+        int i = 0;
+        for(Chain chain : chains){
+            drawChainImpl(chain, g, availableColors[i % availableColors.length]);
+            i++;
+        }
+
+        // draw special points
+        for(Point p : specialPoints){
+            drawSpecialPointImpl(p, g);
+        }
     }
 
     private void drawVertexImpl(Vertex v, Graphics g) {
@@ -147,6 +179,26 @@ public class CartesianPanel extends JPanel {
         PixelPoint start = toPixelPoint(edge.getStart().getCoords(), 0);
         PixelPoint end = toPixelPoint(edge.getEnd().getCoords(), 0);
         g.drawLine(start.getX(), start.getY(), end.getX(), end.getY());
+    }
+
+    private void drawChainImpl(Chain chain, Graphics g, Color edgeColor){
+        for(Graph.Vertex v : chain.getVertices()){
+            drawVertexImpl(v, g);
+        }
+
+        g.setColor(edgeColor);
+        for(Graph.Edge e : chain.getEdges()){
+            drawEdgeImpl(e, g);
+        }
+        g.setColor(defaultColor);
+    }
+
+    private void drawSpecialPointImpl(Point point, Graphics g){
+        g.setColor(Color.RED);
+        final int pointDiameter = 5;
+        PixelPoint p = toPixelPoint(point, pointDiameter);
+        g.fillOval(p.getX(), p.getY(), pointDiameter, pointDiameter);
+        g.setColor(defaultColor);
     }
 
 

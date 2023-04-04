@@ -1,6 +1,8 @@
 package ua.drovolskyi.cg.lab1;
 
 import ua.drovolskyi.cg.lab1.result.*;
+import ua.drovolskyi.cg.lab1.ui.CartesianFrame;
+import ua.drovolskyi.cg.lab1.ui.CliUtils;
 
 import java.util.List;
 
@@ -9,25 +11,38 @@ public class PointLocalizer {
      * Performs preliminary processing before chains localization algorithm.
      * Builds full set of chains for graph (planar subdivision).
      * <p>Time complexity: O(n*log(n)), where n is number of vertices in graph</p>
-     * @param edgeList is a PLANAR graph as a doubly connected edge list structure
+     * @param graph is a PLANAR graph as a lists of
      * @return full set of chains as list of chains sorted from leftmost chain to rightmost chain
      */
-    public static Chain[] buildFullSetOfChains(DoublyConnectedEdgeList edgeList){
-        Graph graph = new Graph(edgeList);
+    public static Chain[] buildFullSetOfChains(Graph graph){
+        System.out.println("Input graph: " + graph);
+        CartesianFrame.displayGraph(graph, "Input graph");
 
         if(!GraphUtils.isCorrect(graph)){
             throw new RuntimeException("Graph must be correct: correct order of indexes of vertices," +
                     " and edge (i->j) can exist only when i<j");
         }
+        System.out.println("\nGraph is correct\n\n");
+
+        CliUtils.waitForKey();
 
         // regularize graph
         if(!GraphUtils.isRegular(graph)){
             GraphRegularizator.regularize(graph);
+            System.out.println("Graph after regularization: " + graph);
+            CartesianFrame.displayGraph(graph, "Regularized graph");
         }
-        System.out.println("Graph after regularization: " + graph);
+        else{
+            System.out.println("Graph is regular");
+        }
+
+        CliUtils.waitForKey();
 
         // balance weight of edges in graph
         balanceByWeight(graph);
+        System.out.println("Graph after balancing a weight of edges: " + graph);
+
+        CliUtils.waitForKey();
 
         // build full set of chains
         FullSetOfChainsBuilder chainsBuilder = new FullSetOfChainsBuilder();

@@ -23,6 +23,7 @@ public class PointOnEdge extends PointLocalizationResult {
 
     @Override
     public String toString(){
-        return "Point " + point + " is on edge " + edge;
+        return "Point " + point + " is on edge {"
+        + edge.getId() + ", " + edge.getStart().getId() + " -> " + edge.getEnd().getId() + "}";
     }
 }

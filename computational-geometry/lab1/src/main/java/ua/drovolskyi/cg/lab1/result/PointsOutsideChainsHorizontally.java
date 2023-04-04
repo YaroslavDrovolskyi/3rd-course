@@ -30,6 +30,7 @@ public class PointsOutsideChainsHorizontally extends PointLocalizationResult {
     @Override
     public String toString(){
         String sideStr = (side == -1) ? "left" : "right";
-        return "Point " + point + " is "  + sideStr + " to edge " + edge;
+        return "Point " + point + " is "  + sideStr + " to edge {" +
+                edge.getId() + ", " + edge.getStart().getId() + " -> " + edge.getEnd().getId() + "}";
     }
 }

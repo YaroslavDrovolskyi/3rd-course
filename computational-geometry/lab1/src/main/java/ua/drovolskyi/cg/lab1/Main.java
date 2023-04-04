@@ -3,14 +3,13 @@ package ua.drovolskyi.cg.lab1;
 
 import ua.drovolskyi.cg.lab1.result.PointLocalizationResult;
 import ua.drovolskyi.cg.lab1.ui.CartesianFrame;
+import ua.drovolskyi.cg.lab1.ui.CliUtils;
 
 import java.util.Arrays;
 
-import java.util.List;
-
 public class Main{
     public static void main(String[] args) {
-        testGraph2();
+        testGraph1();
     }
 
     private static void testGraph2(){
@@ -40,12 +39,12 @@ public class Main{
                 new DoublyConnectedEdgeList.Edge(6, vertices[6], vertices[12])
         };
 
-        DoublyConnectedEdgeList edgeList = new DoublyConnectedEdgeList(Arrays.asList(edges), vertices.length);
+ //       DoublyConnectedEdgeList edgeList = new DoublyConnectedEdgeList(Arrays.asList(edges), vertices.length);
 
-        Chain[] chains = PointLocalizer.buildFullSetOfChains(edgeList);
+ //       Chain[] chains = PointLocalizer.buildFullSetOfChains(edgeList);
 
-        PointLocalizationResult result = PointLocalizer.localize(chains, new Point(5.5, 5.5));
-        System.out.println(result);
+///        PointLocalizationResult result = PointLocalizer.localize(chains, new Point(5.5, 5.5));
+ //       System.out.println(result);
     }
 
     private static void testGraph1(){
@@ -75,38 +74,29 @@ public class Main{
                 new Graph.Edge(6, vertices[6], vertices[12])
         };
 
+        CliUtils.setWaitingForKey(false);
+
+
+        Point p = new Point(3.67, 7.39);
+//        Point p = vertices[12].getCoords();
         Graph graph = new Graph(vertices, edges);
-        System.out.println("\n\n\nIs graph correct: "+ GraphUtils.isCorrect(graph));
-        System.out.println("Is graph regular: "+ GraphUtils.isRegular(graph) + "\n\n\n");
 
-        // regularizing
-        System.out.println("GRAPH BEFORE REGULARIZING:");
-        System.out.println(graph + "\n\n");
+        Chain[] chains = PointLocalizer.buildFullSetOfChains(graph);
+        System.out.println("\n\nFull set of chains: ");
+        CliUtils.printChains(chains);
+        CartesianFrame.displayChainsAndPoint(chains, p, "Chains and point to localize");
 
-        CartesianFrame frame1 = new CartesianFrame();
-        frame1.getPanel().drawGraph(graph);
-        frame1.showUI();
+        CliUtils.waitForKey();
 
-        // regularize graph
-        GraphRegularizator regularizator = new GraphRegularizator();
-        regularizator.regularize(graph);
-
-        System.out.println("\n\n\nGRAPH AFTER REGULARIZING: \n" + graph + "\n\n");
-
-        CartesianFrame frame2 = new CartesianFrame();
-        frame2.getPanel().drawGraph(graph);
-        frame2.showUI();
-
-        System.out.println("\n\n\nIs graph regular: "+ GraphUtils.isRegular(graph) + "\n\n\n");
-
-
-
- //       GraphUtils.balanceByWeight(graph);
-        System.out.println("\n\n\nGraph after balance: ");
-        System.out.println(graph);
-        System.out.println("Is graph balanced by weigh: " + GraphUtils.isBalancedByWeight(graph));
-
+        PointLocalizationResult result = PointLocalizer.localize(chains, p);
+        System.out.println("\n\nResult: " + result);
     }
+
+    /*
+
+        Program does not see point on vertex 8, 9
+        Program see point on vertex: 0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12
+     */
 
 
     private static void testDoublyConnectedEdgeList(){
@@ -157,7 +147,7 @@ public class Main{
 
         CartesianFrame frame = new CartesianFrame();
         frame.getPanel().drawGraph(graph);
-        frame.showUI();
+  //      frame.showUI();
 
 
     }

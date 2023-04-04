@@ -21,9 +21,30 @@ public class Chain {
     public Graph.Vertex[] getVertices(){
         return vertices.values().toArray(new Graph.Vertex[0]);
     }
+    public List<Graph.Edge> getEdges(){
+        return edges;
+    }
 
     public Graph.Edge getEdge(int index){
         return edges.get(index);
+    }
+
+    @Override
+    public String toString(){
+        Graph.Vertex[] vertices = getVertices();
+        if(vertices.length == 0){
+            return "{EMPTY}";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for(Graph.Vertex v : vertices){
+            sb.append(v.getId());
+            sb.append(" -> ");
+        }
+        sb.delete(sb.length() - 4, sb.length());
+        sb.append("}");
+
+        return sb.toString();
     }
 
 }
