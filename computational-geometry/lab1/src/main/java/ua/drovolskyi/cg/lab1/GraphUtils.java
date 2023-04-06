@@ -77,8 +77,6 @@ public class GraphUtils {
         return validInputEdgeExists && validOutputEdgeExists;
     }
 
-
-
     public static boolean isBalancedByWeight(Graph graph){
         Graph.Vertex[] vertices = graph.getVertices().toArray(new Graph.Vertex[0]);
         for(int i = 1; i < vertices.length - 1; i++){
@@ -88,5 +86,16 @@ public class GraphUtils {
             }
         }
         return true;
+    }
+
+    public static boolean isHorizontal(Graph.Edge e){
+        return MathUtils.areEqual(e.getStart().getCoords().getY(),
+                e.getEnd().getCoords().getY(),1e-6);
+    }
+
+    // wrapper for method GeometricUtils.isInSegment()
+    public static boolean isOnEdge(Graph.Edge e, Point p){
+        return GeometricUtils.isInSegment(e.getStart().getCoords(),
+                e.getEnd().getCoords(), p);
     }
 }

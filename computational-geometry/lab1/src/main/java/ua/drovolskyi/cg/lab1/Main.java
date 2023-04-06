@@ -53,7 +53,7 @@ public class Main{
              new Graph.Vertex(1, new Point(6.0, 2.0)),
              new Graph.Vertex(2, new Point(2.5, 2.5)),
              new Graph.Vertex(3, new Point(9.0, 3.0)),
-             new Graph.Vertex(4, new Point(8.5, 4.5)),
+             new Graph.Vertex(4, new Point(9.0, 4.5)),
              new Graph.Vertex(5, new Point(7.0, 5.0)),
              new Graph.Vertex(6, new Point(11.0, 5.5)),
              new Graph.Vertex(7, new Point(2.5, 7.0)),
@@ -73,23 +73,58 @@ public class Main{
                 new Graph.Edge(5, vertices[6], vertices[10]),
                 new Graph.Edge(6, vertices[6], vertices[12])
         };
+        Graph graph = new Graph(vertices, edges);
 
         CliUtils.setWaitingForKey(false);
 
-
-        Point p = new Point(3.67, 7.39);
-//        Point p = vertices[12].getCoords();
-        Graph graph = new Graph(vertices, edges);
-
+        // preliminary processing (build full set of chains)
         Chain[] chains = PointLocalizer.buildFullSetOfChains(graph);
         System.out.println("\n\nFull set of chains: ");
         CliUtils.printChains(chains);
-        CartesianFrame.displayChainsAndPoint(chains, p, "Chains and point to localize");
 
+        // localizing (algorithm applying)
+        Point[] points = new Point[]{
+                vertices[0].getCoords(),
+                vertices[1].getCoords(),
+                vertices[2].getCoords(),
+                vertices[3].getCoords(),
+                vertices[4].getCoords(),
+                vertices[5].getCoords(),
+                vertices[6].getCoords(),
+                vertices[7].getCoords(),
+                vertices[8].getCoords(),
+                vertices[9].getCoords(),
+                vertices[10].getCoords(),
+                vertices[11].getCoords(),
+                vertices[12].getCoords(),
+                new Point(3.0, 7.0), // 7->8
+                new Point(5.5, 7.0), // 8->9
+                new Point(9.0, 3.5), // 3->4
+                new Point(2.9, 7.133), // 7->10
+                new Point(8.66, 7.84), // 6->12
+                new Point(6.58, 4.767), // 2->5
+                new Point(4.95, 1.475), // 0->1
+                new Point(6.0, 7.5), // 9->10
+                new Point(10.44, 5.43), // 5->6
+                new Point(2.5,1.5),
+                new Point(11.5, 1.5),
+                new Point(10.5, 4.0),
+                new Point(5.5, 7.5),
+                new Point(5.5, 6.0),
+                new Point(8.0, 8.0),
+                new Point(4.5,0.5),
+                new Point(10.0, 15.0),
+                new Point(5.0, 10.0),
+                new Point(7.2, 7.0),
+                new Point(7.5, 4.0)
+        };
+        CartesianFrame.displayChainsAndPoint(chains, points, "Chains and point to localize");
         CliUtils.waitForKey();
-
-        PointLocalizationResult result = PointLocalizer.localize(chains, p);
-        System.out.println("\n\nResult: " + result);
+        System.out.println("\n\n");
+        for(Point p : points){
+            PointLocalizationResult result = PointLocalizer.localize(chains, p);
+            System.out.println("Result: " + result);
+        }
     }
 
     /*

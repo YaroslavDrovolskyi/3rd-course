@@ -5,13 +5,14 @@ import ua.drovolskyi.cg.lab1.ui.CartesianFrame;
 import ua.drovolskyi.cg.lab1.ui.CliUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 public class PointLocalizer {
     /**
      * Performs preliminary processing before chains localization algorithm.
      * Builds full set of chains for graph (planar subdivision).
      * <p>Time complexity: O(n*log(n)), where n is number of vertices in graph</p>
-     * @param graph is a PLANAR graph as a lists of
+     * @param graph is a PLANAR graph
      * @return full set of chains as list of chains sorted from leftmost chain to rightmost chain
      */
     public static Chain[] buildFullSetOfChains(Graph graph){
@@ -61,18 +62,22 @@ public class PointLocalizer {
 
         // if point is above or under the graph
         if(p.getY() < getStartVertex(chains).getCoords().getY()){
-            return resultPointOutsideChainsVertically(p, -1);
+            return new PointOutsideChainsVertically(p, -1);
         }
         if(p.getY() > getEndVertex(chains).getCoords().getY()){
-            return resultPointOutsideChainsVertically(p, 1);
+            return new PointOutsideChainsVertically(p, 1);
         }
 
+        PointDiscriminationResult dr = null; // result of discrimination point to chain
+
         // if point is left or right to the graph
-        if(relativePositionToChain(chains[0], p) == -1){
-           return resultPointOutsideChainsHorizontally(p, chains[0], -1);
+        dr = relativePositionToChain(chains[0], p);
+        if(dr.side() == -1){
+            return new PointsOutsideChainsHorizontally(p, dr.edge(), -1);
         }
-        if(relativePositionToChain(chains[chains.length - 1], p) == 1){
-            return resultPointOutsideChainsHorizontally(p, chains[chains.length - 1], 1);
+        dr = relativePositionToChain(chains[chains.length - 1], p);
+        if(dr.side() == 1){
+            return new PointsOutsideChainsHorizontally(p, dr.edge(), 1);
         }
 
 
@@ -82,26 +87,30 @@ public class PointLocalizer {
         int mid = 0;
         while(high > low + 1){
             mid = (low + high) / 2;
-            if (relativePositionToChain(chains[mid], p) == -1){ // point is left to mid-chain
+            dr = relativePositionToChain(chains[mid], p);
+
+            if (dr.side() == -1){ // point is left to mid-chain
                 high = mid;
             }
-            else if (relativePositionToChain(chains[mid], p) == 1){ // point is right to mid-chain
+            else if (dr.side() == 1){ // point is right to mid-chain
                 low = mid;
             }
             else{ // if p is on mid-chain
-                return resultPointOnChain(p, chains[mid]);
+                return resultPointOnChain(p, dr.edge());
             }
         }
         // now we know that p is between chains[low] and chains[high] or on them
 
-        if(relativePositionToChain(chains[low], p) == 0){ // p is on chains[low]
-            return resultPointOnChain(p, chains[low]);
+        PointDiscriminationResult drLow = relativePositionToChain(chains[low], p);
+        PointDiscriminationResult drHigh = relativePositionToChain(chains[high], p);
+        if(drLow.side() == 0){ // p is on chains[low]
+            return resultPointOnChain(p, drLow.edge());
         }
-        else if(relativePositionToChain(chains[high], p) == 0){ // p is on chains[high]
-            return resultPointOnChain(p, chains[high]);
+        else if(drHigh.side() == 0){ // p is on chains[high]
+            return resultPointOnChain(p, drHigh.edge());
         }
         else{ // point is exactly between chains
-            return resultPointBetweenChains(p, chains[low], chains[high]);
+            return new PointBetweenChains(p, drLow.edge(), drHigh.edge());
         }
 
 
@@ -156,11 +165,7 @@ public class PointLocalizer {
     }
 
 
-    private static PointLocalizationResult resultPointOnChain(Point p, Chain chain){
-        // determine edge
-        int edgeIndex = localize(chain.getVertices(), p);
-        Graph.Edge edge = chain.getEdge(edgeIndex);
-
+    private static PointLocalizationResult resultPointOnChain(Point p, Graph.Edge edge){
         // if p is on some vertex of this edge
         if(MathUtils.areEqual(edge.getStart().getCoords().getX(), p.getX(), 1e-6) &&
                 MathUtils.areEqual(edge.getStart().getCoords().getY(), p.getY(), 1e-6)){
@@ -173,33 +178,6 @@ public class PointLocalizer {
 
         // else p is on edge itself
         return new PointOnEdge(p, edge);
-    }
-
-    // side=-1 when p is under chains, side=1 when p is above chains
-    private static PointLocalizationResult resultPointOutsideChainsVertically(Point p, int side){
-        return new PointOutsideChainsVertically(p, side);
-    }
-
-    // side=-1 when p is left to edge, side=1 when p is right to edge
-    private static PointLocalizationResult resultPointOutsideChainsHorizontally(
-            Point p, Chain chain, int side
-    ){
-        // determine edge
-        int edgeIndex = localize(chain.getVertices(), p);
-        Graph.Edge edge = chain.getEdge(edgeIndex);
-
-        return new PointsOutsideChainsHorizontally(p, edge, side);
-    }
-
-    private static PointLocalizationResult resultPointBetweenChains(Point p, Chain leftChain, Chain rightChain){
-        // determine edges
-        int leftEdgeIndex = localize(leftChain.getVertices(), p);
-        Graph.Edge leftEdge = leftChain.getEdge(leftEdgeIndex);
-
-        int rightEdgeIndex = localize(rightChain.getVertices(), p);
-        Graph.Edge rightEdge = rightChain.getEdge(rightEdgeIndex);
-
-        return new PointBetweenChains(p, leftEdge, rightEdge);
     }
 
     // returns vertex where all chains start
@@ -221,47 +199,48 @@ public class PointLocalizer {
      * WARNING: p shouldn't be above or under the chain
      * @param chain
      * @param p
-     * @return -1 when point is left to chain, 1 when point is right to chain, and 0 when point is on chain
+     * @return PointDiscriminationResult of the best localizing edge (e) for given point p and one of following values:
+     * -1 when point is left to e, 1 when point is right to e, and 0 when point is on e
      */
-    private static Integer relativePositionToChain(Chain chain, Point p){
+    private static PointDiscriminationResult relativePositionToChain(Chain chain, Point p){
         Graph.Vertex[] vertices = chain.getVertices();
 
-        // first step (find edge)
-        int edgeIndex = localize(vertices, p);
+        // first step (find best localizing edge)
+        int edgeIndex = localizePointVertically(vertices, p);
 
         if(edgeIndex == -1 || edgeIndex == vertices.length - 1){
             throw new RuntimeException("Point shouldn't be above or under the chain");
         }
 
-        Graph.Edge edge = chain.getEdge(edgeIndex);
+        Graph.Edge edge = getBestNeighbourLocalizingEdge(chain, edgeIndex, p);
 
         // second step (check if point is left or right to edge)
-        if(GeometricUtils.isInSegment(
-                edge.getStart().getCoords(), edge.getEnd().getCoords(), p)){
-            return 0; // point is on chain
+        if(GraphUtils.isOnEdge(edge, p)){
+            return new PointDiscriminationResult(edge, 0); // point is on edge
         }
-        if(MathUtils.areEqual(edge.getStart().getCoords().getY(),
-                edge.getEnd().getCoords().getY(),1e-6)){ // if edge is horizontal
+        if(GraphUtils.isHorizontal(edge)){ // if edge is horizontal
             if(p.getX() > edge.getEnd().getCoords().getX()){
-                return 1;
+                return new PointDiscriminationResult(edge, 1);
             }
             else{
-                return -1;
+                return new PointDiscriminationResult(edge, -1);
             }
         }
         else{
-            return GeometricUtils.relativePosition(edge.getStart().getCoords(),
-                    edge.getEnd().getCoords(), p);
+            return new PointDiscriminationResult(edge,
+                    GeometricUtils.relativePosition(edge.getStart().getCoords(), edge.getEnd().getCoords(), p));
         }
     }
 
     /**
      * Localize point p in projections of vertices on OY axis
+     * <p>WARNING: can produce not accurate result for point that is on one line with horizontal edge</p>
+     * <p>If you have horizontal edges in chain, use method fixLocalizingEdge() after this method</p>
      * @param vertices is array of vertices (vertices should be in correct order (from bottom to top))
      * @param p
      * @return index of interval where p is located (-1 means point is under the bottom vertex)
      */
-    private static Integer localize(Graph.Vertex[] vertices, Point p){
+    private static Integer localizePointVertically(Graph.Vertex[] vertices, Point p){
         // if point is outside the interval
         if(p.getY() < vertices[0].getCoords().getY()){
             return -1;
@@ -284,6 +263,100 @@ public class PointLocalizer {
             }
         }
         return low;
+    }
+
+    /**
+     * Corrects localizing edge returned by localizePointVertically().
+     * Method localizePointVertically() can give incorrect result
+     * when point p is in on the line of some horizontal edges.
+     * For example, method localizePointVertically() can return that point p is lying somewhere
+     * in vertical region of Y-projection of edge e, but in reality p can be on e's adjacent horizontal edge.
+     * <br><br>
+     * Algorithm (e is input edge):
+     * <p>1) check if p is on e. If yes, return it. Otherwise, go to next step.</p>
+     * <p>2) If p has same y-coordinate with start of e, sequentially go to e's previous edges in chain while they are horizontal.
+     * For each such edge e1 we check if p is on e1 and return e1 if it is true.
+     * Otherwise we remember that e1 is the most precision localization of p on Y-axis.
+     * If p is right to e1, break loop.</p>
+     * <p>3) [Mirror to step 2] If p has same y-coordinate with end of e, sequentially go to e's
+     * next edges in chain while they are horizontal.
+     * For each such edge e2 we check if p is on e2 and return e2 if it is true.
+     * Otherwise we remember that e1 is the most precision localization of p on Y-axis.
+     * If p is left to e2, break loop.</p>
+     * <p>4) Return result (if we haven't returned earlier).
+     * In case when e is horizontal: if p is left to e return e1, else return e2.
+     * In case when e is not horizontal we have iterated only through next or prev edges,
+     * so return e2 or e2, respectively.</p>
+     * @param chain
+     * @param localizingEdgeIndex is index of edge returned by localizePointVertically() method;
+     *                            it must not be -1 or chain().getEdges().size() - 1
+     * @param p is point we need localize
+     * @return the best localization edge for given point p chosen from horizontal edges,
+     *          that neighboring to input edge
+     */
+    private static Graph.Edge getBestNeighbourLocalizingEdge(Chain chain, int localizingEdgeIndex, Point p){
+        List<Graph.Edge> edges = chain.getEdges();
+        Graph.Edge localizingEdge = edges.get(localizingEdgeIndex);
+
+        if(GraphUtils.isOnEdge(localizingEdge, p)){
+            return localizingEdge;
+        }
+
+        Graph.Edge bestPrevLocalizationEdge = null;
+        if(MathUtils.areEqual(localizingEdge.getStart().getCoords().getY(), p.getY())){
+            for (int i = localizingEdgeIndex - 1; i >= 0; i--){
+                Graph.Edge e = edges.get(i);
+                if(!GraphUtils.isHorizontal(e)){
+                    break;
+                }
+                if(GraphUtils.isOnEdge(e, p)){
+                    return e;
+                }
+                bestPrevLocalizationEdge = e;
+                if(e.getEnd().getCoords().getX() < p.getX()){
+                    break;
+                }
+            }
+        }
+
+        Graph.Edge bestNextLocalizationEdge = null;
+        if(MathUtils.areEqual(localizingEdge.getEnd().getCoords().getY(), p.getY())){
+            for(int i = localizingEdgeIndex + 1; i < edges.size(); i++){
+                Graph.Edge e = edges.get(i);
+                if(!GraphUtils.isHorizontal(e)){
+                    break;
+                }
+                if(GraphUtils.isOnEdge(e, p)){
+                    return e;
+                }
+                bestNextLocalizationEdge = e;
+                if(e.getStart().getCoords().getX() > p.getX()){
+                    break;
+                }
+            }
+        }
+
+        // return result
+        if(GraphUtils.isHorizontal(localizingEdge)){
+            if(localizingEdge.getStart().getCoords().getX() > p.getX()){
+                return Objects.requireNonNullElse(bestPrevLocalizationEdge, localizingEdge);
+            }
+            else {
+                return Objects.requireNonNullElse(bestNextLocalizationEdge, localizingEdge);
+            }
+        }
+        else{ // if input edge isn't horizontal, we always have at least one of that variables = null
+            if(bestPrevLocalizationEdge != null){
+                return bestPrevLocalizationEdge;
+            }
+            else {
+                return Objects.requireNonNullElse(bestNextLocalizationEdge, localizingEdge);
+            }
+        }
+    }
+
+
+    private record PointDiscriminationResult(Graph.Edge edge, int side) {
     }
 
 }

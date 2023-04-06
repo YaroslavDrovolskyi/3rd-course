@@ -33,10 +33,12 @@ public class CartesianFrame extends JFrame {
         frame.showUI(title);
     }
 
-    public static void displayChainsAndPoint(Chain[] chains, Point p, String title){
+    public static void displayChainsAndPoint(Chain[] chains, Point[] points, String title){
         CartesianFrame frame = new CartesianFrame();
         frame.getPanel().drawChains(chains);
-        frame.getPanel().drawSpecialPoint(p);
+        for(Point p : points){
+            frame.getPanel().drawSpecialPoint(p);
+        }
         frame.showUI(title);
     }
 }
