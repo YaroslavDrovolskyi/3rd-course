@@ -2,9 +2,9 @@ package ua.drovolskyi.cg.lab1.ui;
 
 
 
-import ua.drovolskyi.cg.lab1.Chain;
-import ua.drovolskyi.cg.lab1.Graph;
-import ua.drovolskyi.cg.lab1.Point;
+import ua.drovolskyi.cg.lab1.localizer.Chain;
+import ua.drovolskyi.cg.lab1.graph.Graph;
+import ua.drovolskyi.cg.lab1.geometry.Point;
 
 import javax.swing.JFrame;
 

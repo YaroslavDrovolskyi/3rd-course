@@ -1,4 +1,4 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.geometry;
 
 public class GeometricUtils {
     /**

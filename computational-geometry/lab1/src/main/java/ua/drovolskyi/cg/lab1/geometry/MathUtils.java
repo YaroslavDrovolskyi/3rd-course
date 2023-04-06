@@ -1,4 +1,4 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.geometry;
 
 public class MathUtils {
     public static boolean areEqual(double a, double b, double eps){

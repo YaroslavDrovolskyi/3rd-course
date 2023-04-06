@@ -1,9 +1,12 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.localizer;
 
 import java.util.*;
 
-import ua.drovolskyi.cg.lab1.Graph.Vertex;
-import ua.drovolskyi.cg.lab1.Graph.Edge;
+import ua.drovolskyi.cg.lab1.geometry.GeometricUtils;
+import ua.drovolskyi.cg.lab1.geometry.Point;
+import ua.drovolskyi.cg.lab1.graph.Graph;
+import ua.drovolskyi.cg.lab1.graph.Graph.Vertex;
+import ua.drovolskyi.cg.lab1.graph.Graph.Edge;
 
 
 /*

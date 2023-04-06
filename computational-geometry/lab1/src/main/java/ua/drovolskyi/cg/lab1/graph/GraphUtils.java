@@ -1,6 +1,9 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.graph;
 
-import java.util.Collection;
+import ua.drovolskyi.cg.lab1.geometry.GeometricUtils;
+import ua.drovolskyi.cg.lab1.geometry.MathUtils;
+import ua.drovolskyi.cg.lab1.geometry.Point;
+
 import java.util.Comparator;
 
 public class GraphUtils {

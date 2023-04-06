@@ -1,6 +1,11 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.localizer;
 
-import ua.drovolskyi.cg.lab1.result.*;
+import ua.drovolskyi.cg.lab1.geometry.GeometricUtils;
+import ua.drovolskyi.cg.lab1.geometry.MathUtils;
+import ua.drovolskyi.cg.lab1.graph.Graph;
+import ua.drovolskyi.cg.lab1.graph.GraphUtils;
+import ua.drovolskyi.cg.lab1.geometry.Point;
+import ua.drovolskyi.cg.lab1.localizer.result.*;
 import ua.drovolskyi.cg.lab1.ui.CartesianFrame;
 import ua.drovolskyi.cg.lab1.ui.CliUtils;
 

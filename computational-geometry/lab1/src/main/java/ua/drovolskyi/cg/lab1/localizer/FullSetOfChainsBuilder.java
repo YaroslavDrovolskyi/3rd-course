@@ -1,4 +1,6 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.localizer;
+
+import ua.drovolskyi.cg.lab1.graph.Graph;
 
 import java.util.ArrayList;
 import java.util.List;

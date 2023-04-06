@@ -1,7 +1,7 @@
-package ua.drovolskyi.cg.lab1.result;
+package ua.drovolskyi.cg.lab1.localizer.result;
 
-import ua.drovolskyi.cg.lab1.Graph;
-import ua.drovolskyi.cg.lab1.Point;
+import ua.drovolskyi.cg.lab1.graph.Graph;
+import ua.drovolskyi.cg.lab1.geometry.Point;
 
 // point is on edge but not on its start or end
 public class PointOnEdge extends PointLocalizationResult {

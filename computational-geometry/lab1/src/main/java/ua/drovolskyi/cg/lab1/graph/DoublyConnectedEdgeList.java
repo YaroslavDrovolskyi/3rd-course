@@ -1,6 +1,7 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.graph;
 
-import java.util.ArrayList;
+import ua.drovolskyi.cg.lab1.geometry.Point;
+
 import java.util.List;
 
 public class DoublyConnectedEdgeList {

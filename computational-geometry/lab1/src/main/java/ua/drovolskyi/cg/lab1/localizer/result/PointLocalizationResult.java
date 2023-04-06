@@ -1,4 +1,4 @@
-package ua.drovolskyi.cg.lab1.result;
+package ua.drovolskyi.cg.lab1.localizer.result;
 
 public abstract class PointLocalizationResult {
 }

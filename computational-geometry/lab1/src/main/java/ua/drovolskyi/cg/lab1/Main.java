@@ -1,7 +1,13 @@
 package ua.drovolskyi.cg.lab1;
 
 
-import ua.drovolskyi.cg.lab1.result.PointLocalizationResult;
+import ua.drovolskyi.cg.lab1.graph.DoublyConnectedEdgeList;
+import ua.drovolskyi.cg.lab1.graph.Graph;
+import ua.drovolskyi.cg.lab1.geometry.Point;
+import ua.drovolskyi.cg.lab1.localizer.Chain;
+import ua.drovolskyi.cg.lab1.localizer.GraphRegularizator;
+import ua.drovolskyi.cg.lab1.localizer.PointLocalizer;
+import ua.drovolskyi.cg.lab1.localizer.result.PointLocalizationResult;
 import ua.drovolskyi.cg.lab1.ui.CartesianFrame;
 import ua.drovolskyi.cg.lab1.ui.CliUtils;
 

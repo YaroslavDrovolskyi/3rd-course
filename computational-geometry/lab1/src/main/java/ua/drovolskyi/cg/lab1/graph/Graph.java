@@ -1,4 +1,7 @@
-package ua.drovolskyi.cg.lab1;
+package ua.drovolskyi.cg.lab1.graph;
+
+import ua.drovolskyi.cg.lab1.geometry.GeometricUtils;
+import ua.drovolskyi.cg.lab1.geometry.Point;
 
 import java.util.*;
 

@@ -1,6 +1,6 @@
-package ua.drovolskyi.cg.lab1.result;
+package ua.drovolskyi.cg.lab1.localizer.result;
 
-import ua.drovolskyi.cg.lab1.Point;
+import ua.drovolskyi.cg.lab1.geometry.Point;
 
 public class PointOutsideChainsVertically extends PointLocalizationResult {
     private final Point point;
