@@ -122,7 +122,9 @@ public class Main{
                 new Point(10.0, 15.0),
                 new Point(5.0, 10.0),
                 new Point(7.2, 7.0),
-                new Point(7.5, 4.0)
+                new Point(7.5, 4.0),
+                new Point(9.0, 1.0),
+                new Point (10.0, 10.0)
         };
         CartesianFrame.displayChainsAndPoint(chains, points, "Chains and point to localize");
         CliUtils.waitForKey();
