@@ -34,7 +34,8 @@ public class Main {
                 new Point(22, 3.0, 5.0), // vertex of rectangle
                 new Point(23, 3.0, 7.5), // vertex of rectangle
                 new Point(24, 10.0, 7.5), // vertex of rectangle
-                new Point(25, 10.0, 5.0) // vertex of rectangle
+                new Point(25, 10.0, 5.0), // vertex of rectangle
+                new Point (26, 13.0, 12.0)
         ));
 
 
@@ -55,7 +56,7 @@ public class Main {
         printListOfPoints(points.stream().toList());
         CartesianFrame.displayPoints(points.stream().toList(), "Input points");
 
-        Rectangle rect = new Rectangle(3.0, 10.0, 5.0, 7.5);
+        Rectangle rect = new Rectangle(3.0, 10.0, 5.0, 10.0);
         System.out.println("Input rectangle: " + rect + "\n");
 
         // preliminary processing
