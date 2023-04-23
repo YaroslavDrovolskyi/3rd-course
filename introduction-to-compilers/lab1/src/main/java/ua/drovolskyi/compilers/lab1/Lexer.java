@@ -14,7 +14,7 @@ public class Lexer {
     private static final List<String> twoCharacterOperators = Arrays.asList(
             "**", "<<", ">>", "==", "!=", ">=", "<=", "%=", "/=", "-=", "+=", "*=", "..", "?:", "&&", "||"
     );
-    private static final String oneCharacterOperators = "!+-~*/%&|^><=";
+    private static final String oneCharacterOperators = "!+-~*/%&|^><=.";
 
     public Lexer(CharStream charStream){
         this.charStream = charStream;
@@ -28,6 +28,7 @@ public class Lexer {
         return tokens;
     }
 
+    // start of next token must be the currentSymbol
     private Token extractToken(){
         Character c = charStream.getCurrentSymbol();
 
@@ -39,30 +40,36 @@ public class Lexer {
         }
         // three-characters operators
         else if(threeCharacterOperators.contains(c + charStream.lookahead(2))){
-            return new Token(Token.Type.OPERATOR, c + charStream.lookahead(2));
+            Token token = new Token(Token.Type.OPERATOR, c + charStream.lookahead(2));
             charStream.consume();
             charStream.consume();
             charStream.consume();
+            return token;
         }
         // two-characters operators
         else if(twoCharacterOperators.contains(c + charStream.lookahead(1))){
-            return new Token(Token.Type.OPERATOR, c + charStream.lookahead(1));
+            Token token = new Token(Token.Type.OPERATOR, c + charStream.lookahead(1));
             charStream.consume();
             charStream.consume();
+            return token;
         }
         // one-character operators
         else if(oneCharacterOperators.contains(String.valueOf(c))){
+            Token token = new Token(Token.Type.OPERATOR, String.valueOf(c));
             charStream.consume();
-            return new Token(Token.Type.OPERATOR, String.valueOf(c));
+
         }
         // one-character punctuation
         else if(punctuation.contains(String.valueOf(c))){
+            Token token = new Token(Token.Type.PUNCTUATION, String.valueOf(c));
             charStream.consume();
-            return new Token(Token.Type.PUNCTUATION, String.valueOf(c));
+            return token;
         }
-        else if(c.equals('.') || Character.isDigit(c)){ // this will also handle '.' operator
-            return createNumberToken(); /////////////////////////////////
+        else if(Character.isDigit(c)){
+            return createNumberToken();
         }
+
+        ///////////////////// NEED TO remake createCommentToken() to make start of next token currentCharacter
         // check for three-character lexems
         // check for two-character lexems
         // check for one-character lexems
@@ -70,7 +77,7 @@ public class Lexer {
         // numbers ('_' in number are valid) (second dot in number is not valid)
         // words (keywords + identifiers) (+ 'not', 'and', 'or' operators)
         // '.' operator (check if number starts or not)
-        // 'abs?' is valid identifier
+        // 'abs?' or 'abs!' are valid identifiers
     }
 
     // returns comment token to the end of line or end of charStream
@@ -83,5 +90,59 @@ public class Lexer {
         Integer tokenEndIndex = charStream.getCurrentIndex();
 
         return new Token(Token.Type.COMMENT, charStream.getString(tokenStartIndex, tokenEndIndex));
+    }
+
+    private Token createNumberToken(){
+        // currentCharacter is digit
+
+        StringBuilder lexeme = new StringBuilder();
+        lexeme.append(charStream.getCurrentSymbol());
+        charStream.consume();
+
+        Boolean dotOccurred = false;
+
+        while(!charStream.isEnded()){
+            Character c = charStream.getCurrentSymbol();
+
+            if(c.equals('.')){
+                if(dotOccurred.equals(true) ||
+                        lexeme.lastIndexOf("_") == lexeme.length() - 1){
+                    return createNumberTokenImpl(lexeme);
+                }
+                else{
+                    dotOccurred = true;
+                }
+            }
+
+            if(c.equals('_')){
+                if(lexeme.lastIndexOf("_") == lexeme.length() - 1 ||
+                        lexeme.lastIndexOf(".") == lexeme.length() - 1){
+                    return createNumberTokenImpl(lexeme);
+                }
+            }
+
+            if(!Character.isDigit(c)){
+                return createNumberTokenImpl(lexeme);
+            }
+
+            lexeme.append(c);
+            charStream.consume();
+        }
+
+        return createNumberTokenImpl(lexeme);
+    }
+
+    // call this method when currentCharacter don't satisfy you,
+    // incorrect character is consumed, but not added to lexeme
+    // put currentIndex on start of next token
+    private Token createNumberTokenImpl(StringBuilder lexeme){
+        // if '_' or '.' is last character of lexeme
+        if(lexeme.lastIndexOf("_") == lexeme.length() - 1 ||
+                lexeme.lastIndexOf(".") == lexeme.length() - 1){
+            charStream.returnCharacter();
+            lexeme.delete(lexeme.length() - 1, lexeme.length());
+        }
+
+        return new Token(Token.Type.LITERAL_NUMBER, lexeme.toString());
     }
 }

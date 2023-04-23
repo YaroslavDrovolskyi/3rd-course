@@ -15,6 +15,11 @@ public class CharStreamStringImpl implements CharStream{
     }
 
     @Override
+    public void returnCharacter(){
+        currentIndex--;
+    }
+
+    @Override
     public Character getCurrentSymbol(){
         return string.charAt(currentIndex);
     }
