@@ -15,8 +15,19 @@ public class CharStreamStringImpl implements CharStream{
     }
 
     @Override
+    public void consumeCharacters(Integer count){
+        currentIndex += count;
+    }
+
+
+    @Override
     public void returnCharacter(){
         currentIndex--;
+    }
+
+    @Override
+    public void returnCharacters(Integer count){
+        currentIndex -= count;
     }
 
     @Override
@@ -42,7 +53,13 @@ public class CharStreamStringImpl implements CharStream{
     // returns {numberOfSymbols} symbols, starting from symbol with index {currentIndex + 1}
     @Override
     public String lookahead(Integer numberOfCharacters){
-        return string.substring(currentIndex + 1, (currentIndex + 1) + numberOfCharacters - 1);
+        return string.substring(currentIndex + 1, (currentIndex + 1) + numberOfCharacters);
+    }
+
+    // returns number of character available after currentCharacter
+    @Override
+    public Integer availableCharacters(){
+        return string.length() - (currentIndex + 1);
     }
 
     @Override

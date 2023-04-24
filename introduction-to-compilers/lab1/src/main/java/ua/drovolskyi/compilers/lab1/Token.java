@@ -18,14 +18,26 @@ public class Token {
     }
 
     public static enum Type{
-        KEYWORD,
-        OPERATOR,
-        LITERAL_NUMBER,
-        LITERAL_STRING,
-        IDENTIFIER,
-        PUNCTUATION,
-        COMMENT,
-        WHITESPACE,
-        ERROR
+        KEYWORD("KEYWORD"),
+        OPERATOR("OPERATOR"),
+        LITERAL_NUMBER("LITERAL_NUMBER"),
+        LITERAL_STRING("LITERAL_STRING"),
+        IDENTIFIER("IDENTIFIER"),
+        PUNCTUATION("PUNCTUATION"),
+        COMMENT("COMMENT"),
+        WHITESPACE("WHITESPACE"),
+        SIGIL("SIGIL"),
+        ERROR("ERROR");
+
+        private final String label;
+
+        private Type(String label){
+            this.label = label;
+        }
+
+        @Override
+        public String toString(){
+            return this.label;
+        }
     }
 }
