@@ -5,10 +5,17 @@ import java.util.Comparator;
 // start is left point, end is right point
 // in other words, start < end according to GeometricUtils.getPointComparator()
 public class LineSegment {
+    private final Integer id;
     private final Point start;
     private final Point end;
 
     public LineSegment(Point p1, Point p2){
+        this(null, p1, p2);
+    }
+
+    public LineSegment(Integer id, Point p1, Point p2){
+        this.id = id;
+
         Comparator<Point> comp = GeometricUtils.getPointComparator();
         if(comp.compare(p1, p2) < 0){
             this.start = p1;
@@ -23,8 +30,13 @@ public class LineSegment {
         }
     }
 
+    public Integer getId(){
+        return this.id;
+    }
+
     public Point getStart() {
         return start;
+
     }
 
     public Point getEnd() {
@@ -42,5 +54,16 @@ public class LineSegment {
         LineSegment lineSegment = (LineSegment)obj;
         return this.getStart().equals(lineSegment.getStart()) &&
                 this.getEnd().equals(lineSegment.getEnd());
+    }
+
+    @Override
+    public String toString(){
+        String coordinates = getStart().toString() + " -> " + getEnd().toString();
+        if(id != null){
+            return "{" + id + ", " + coordinates + "}";
+        }
+        else{
+            return "{" + coordinates + "}";
+        }
     }
 }

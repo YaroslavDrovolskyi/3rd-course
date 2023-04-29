@@ -1,4 +1,6 @@
-package ua.drovolskyi.cg.lab3;
+package ua.drovolskyi.cg.lab3.intersections_finder;
+
+import ua.drovolskyi.cg.lab3.GeometricUtils;
 
 import java.util.Comparator;
 import java.util.SortedSet;
@@ -52,7 +54,7 @@ public class EventQueue {
 
     public void addEvent(Event e){
         if(events.contains(e)){
-            throw new RuntimeException("Event already exist");
+    //        throw new RuntimeException("Event already exist"); //////////////////////////////////////////////
         }
         events.add(e);
     }
@@ -61,6 +63,30 @@ public class EventQueue {
         Event e = events.first();
         events.remove(e);
         return e;
+    }
+
+    public Boolean isEmpty(){
+        return events.isEmpty();
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("EventQueue {\n");
+
+        if(!events.isEmpty()){
+            for(Event e : events){
+                sb.append(e.toString());
+                sb.append("\n");
+            }
+        }
+        else{
+            sb.append("[NO EVENTS]\n");
+        }
+
+        sb.append("}");
+
+        return sb.toString();
     }
 
 

@@ -1,8 +1,9 @@
-package ua.drovolskyi.cg.lab3;
+package ua.drovolskyi.cg.lab3.intersections_finder;
 
-import javax.sound.sampled.Line;
-import java.util.*;
+import ua.drovolskyi.cg.lab3.LineSegment;
+import ua.drovolskyi.cg.lab3.Point;
 
+// if type is SEGMENTS_INTERSECTION, then segment1 is lower than segment2
 public class Event {
     private final Type type;
     private final Point point;
@@ -84,7 +85,7 @@ public class Event {
 
         if(this.type != Type.SEGMENTS_INTERSECTION){
             if(!this.getLineSegment().equals(e.getLineSegment())){
-                return true;
+                return false;
             }
         }
         else{
@@ -100,10 +101,41 @@ public class Event {
         return true;
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("{Event ");
+        sb.append(type);
+        sb.append(", ");
+        sb.append(point);
+        sb.append(", ");
+        sb.append(segment1);
+
+        if(segment2 != null){
+            sb.append(", ");
+            sb.append(segment2);
+        }
+
+        sb.append("}");
+
+        return sb.toString();
+    }
+
 
     public static enum Type{
-        SEGMENT_START,
-        SEGMENT_END,
-        SEGMENTS_INTERSECTION
+        SEGMENT_START("SEGMENT_START"),
+        SEGMENT_END("SEGMENT_END"),
+        SEGMENTS_INTERSECTION("SEGMENTS_INTERSECTION");
+
+        private final String label;
+
+        private Type(String label){
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return this.label;
+        }
     }
 }

@@ -31,7 +31,9 @@ public class GeometricUtils {
         return pointComparator;
     }
 
-    public static Point getIntersection(LineSegment s1, LineSegment s2){
+    // returns t points where line segments sq and s2 intersect
+    // returns null when segments do not intersect or when they fully or partially overlap
+    public static Point getIntersectionPoint(LineSegment s1, LineSegment s2){
         Point startS1 = s1.getStart();
         Point endS1 = s1.getEnd();
         Point startS2 = s2.getStart();
@@ -71,4 +73,76 @@ public class GeometricUtils {
             return null;
         }
     }
+
+    // x is coordinate of vertical line
+    // if s is vertical segment, its start point returned
+    // returns null when x-vertical line does to intersect given segment
+    public static Point getIntersectionWithVerticalLine(LineSegment s, Double x){
+        Double x1 = s.getStart().getX();
+        Double x2 = s.getEnd().getX();
+        Double y1 = s.getStart().getY();
+        Double y2 = s.getEnd().getY();
+
+        if(MathUtils.areEqual(x1, x) || MathUtils.areEqual(x2, x) ||
+                (x1 < x && x < x2)){ // if x-vertical segment intersects segment s
+            if(MathUtils.areEqual(x1, x2)){ // if s is vertical segment
+                return s.getStart();
+            }
+            else{
+                Double y = x * (y2 - y1)/(x2 - x1) + (x2*y1 - x1*y2)/(x2 - x1);
+                return new Point(x, y);
+            }
+        }
+        else{
+            return null;
+        }
+    }
+
+    // calculates point c that lies between a and b, and ac=bc
+    public static Point calcMedianPoint(Point a, Point b){
+        return new Point((a.getX() + b.getX())/2, (a.getY() + b.getY())/2);
+    }
+
+    /**
+     * Calculate distance between two points
+     * @param start
+     * @param end
+     * @return distance between points start and end
+     */
+    public static Double calcDistance(Point start, Point end){
+        return Math.sqrt((end.getX() - start.getX()) * (end.getX() - start.getX()) +
+                (end.getY() - start.getY()) * (end.getY() - start.getY()));
+
+    }
+
+    /**
+     * Check if point c lies on segment ab
+     * <p>SOURCE: https://stackoverflow.com/a/17693146<p/>
+     * @param ab is segment
+     * @param c is point that is need to be checked
+     * @return true if point c lies on segment ab, false otherwise
+     */
+    public static Boolean isInSegment(LineSegment ab, Point c){
+        Point a = ab.getStart();
+        Point b = ab.getEnd();
+        return MathUtils.areEqual(calcDistance(a, c) + calcDistance(c, b), calcDistance(a,b), 1e-6);
+    }
+
+    public static Boolean areOverlap(LineSegment s1, LineSegment s2){
+        if(isInSegment(s1, s2.getStart()) && isInSegment(s2, s1.getEnd())){
+            return true;
+        }
+        if(isInSegment(s2, s1.getStart()) && isInSegment(s1, s2.getEnd())){
+            return true;
+        }
+        if(isInSegment(s2, s1.getStart()) && isInSegment(s2, s1.getEnd())){
+            return true;
+        }
+        if(isInSegment(s1, s2.getStart()) && isInSegment(s1, s2.getEnd())){
+            return true;
+        }
+
+        return false;
+    }
+
 }
