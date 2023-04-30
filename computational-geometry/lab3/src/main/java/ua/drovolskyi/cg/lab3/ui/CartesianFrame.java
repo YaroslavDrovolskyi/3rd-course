@@ -38,6 +38,9 @@ public class CartesianFrame extends JFrame {
                                                        IntersectionsSet intersections, String title){
         CartesianFrame frame = new CartesianFrame();
 
+        // draw given list of segments
+        frame.getPanel().drawSegments(segments);
+
         // draw overlapping intersections
         List<OverlappingIntersection> oi = intersections.getOverlappingIntersections().stream().toList();
         for(OverlappingIntersection i : oi){

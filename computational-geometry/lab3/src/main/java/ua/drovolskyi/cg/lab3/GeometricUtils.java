@@ -39,6 +39,15 @@ public class GeometricUtils {
         Point startS2 = s2.getStart();
         Point endS2 = s2.getEnd();
 
+        if(isVertical(s1) && isVertical(s2)){
+            if(endS2.equals(startS1)){
+                return endS2;
+            }
+            if(endS1.equals(startS2)){
+                return endS1;
+            }
+        }
+
         Double a1 = endS1.getX() - startS1.getX();
         Double b1 = endS2.getX() - startS2.getX();
         Double c1 = startS2.getX() - startS1.getX();
@@ -103,6 +112,14 @@ public class GeometricUtils {
         return new Point((a.getX() + b.getX())/2, (a.getY() + b.getY())/2);
     }
 
+    public static Boolean isVertical(LineSegment s){
+        return MathUtils.areEqual(s.getStart().getX(), s.getEnd().getX());
+    }
+
+    public static Double calcLength(LineSegment s){
+        return calcDistance(s.getStart(), s.getEnd());
+    }
+
     /**
      * Calculate distance between two points
      * @param start
@@ -129,6 +146,10 @@ public class GeometricUtils {
     }
 
     public static Boolean areOverlap(LineSegment s1, LineSegment s2){
+        if(getIntersectionPoint(s1, s2) != null){
+            return false;
+        }
+
         if(isInSegment(s1, s2.getStart()) && isInSegment(s2, s1.getEnd())){
             return true;
         }

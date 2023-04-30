@@ -1,15 +1,13 @@
 package ua.drovolskyi.cg.lab3.intersections_finder.result;
 
+import ua.drovolskyi.cg.lab3.GeometricUtils;
 import ua.drovolskyi.cg.lab3.Point;
 
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class IntersectionsSet {
     private final Set<OverlappingIntersection> overlappingIntersections = new HashSet<>();
-    private final Map<Point, InPointIntersection> inPointIntersections = new Hashtable<>();
+    private final Map<Point, InPointIntersection> inPointIntersections = new TreeMap<>(GeometricUtils.getPointComparator());
 
     public void addIntersection(Intersection intersection){
         if(intersection instanceof OverlappingIntersection overlappingIntersection){

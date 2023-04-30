@@ -29,65 +29,114 @@ public class IntersectionsFinder {
             sweepLineX = event.getPoint().getX();
             status.setStatusLineX(sweepLineX);
 
-            System.out.println("\n\nCurrent event: " + event);
+
+            System.out.println("\n\n====================================== Current event: " + event);
+
+            // if segment start:
+            // if insert vertical line, need to check for intersections with not-vertical segments,
+            // and for overlapping with vertical segments
+            // if insert not vertical line, we should insert as usual + check for intersection with all vertical segments
+
+            // if segment intersection: change order only if this segments are not-vertical
+
+            // if we change sweepingLineX to ew value, we should clear all vertical lines form status
+
 
             if(event.getType() == Event.Type.SEGMENT_START){
                 LineSegment segment = event.getLineSegment();
+
+                if(segment.getId().equals(8)){
+                    System.out.println("\nHere!\n"); /////////////////////////////////////////////////
+                }
+
+
                 status.insert(segment);
 
-                // process above segments
-                LineSegment aboveSegment = status.above(segment);
-                // go up and discover all above overlapping intersections (if they exist)
-                // remind: if segments are overlapping, getIntersectionPoint() returns null
-                while(aboveSegment != null && GeometricUtils.areOverlap(segment, aboveSegment)){
-                    foundIntersections.addIntersection(new OverlappingIntersection(segment, aboveSegment));
-                    aboveSegment = status.above(aboveSegment);
+                if(!GeometricUtils.isVertical(segment)){
+                    // process above segments
+                    LineSegment aboveSegment = status.above(segment);
+                    // go up and discover all above overlapping intersections (if they exist)
+                    // remind: if segments are overlapping, getIntersectionPoint() returns null
+                    while(aboveSegment != null && GeometricUtils.areOverlap(segment, aboveSegment)){
+                        foundIntersections.addIntersection(new OverlappingIntersection(segment, aboveSegment));
+                        aboveSegment = status.above(aboveSegment);
+                    }
+
+                    // here we have gone through all above overlapping segments (if they exist),
+                    // and now we need to check for intersection of segment with first non-overlapping above segment
+                    discoverIntersection(segment, aboveSegment);
+
+
+                    // process under segments
+                    LineSegment underSegment = status.under(segment);
+                    // go down and discover all under overlapping intersections (if they exist)
+                    // remind: if segments are overlapping, getIntersectionPoint() returns null
+                    while(underSegment != null && GeometricUtils.areOverlap(segment, underSegment)){
+                        foundIntersections.addIntersection(new OverlappingIntersection(underSegment, segment));
+                        underSegment = status.under(underSegment);
+                    }
+
+                    // here we have gone through all under overlapping segments (if they exist),
+                    // and now we need to check for intersection of segment with first non-overlapping under segment
+                    discoverIntersection(underSegment, segment);
+
+                    // check for intersection with vertical segments
+                    for(LineSegment s : status.getVerticalSegments()){
+                        discoverIntersection(segment, s);
+                    }
+                }
+                else{ // segment is vertical
+                    for(LineSegment s : status.getNotVerticalSegments()){
+                        discoverIntersection(segment, s);
+                    }
+
+                    for(LineSegment s : status.getVerticalSegments()){
+                        discoverIntersection(segment, s);
+                    }
+
+                    for(LineSegment s : status.getVerticalSegments()){
+                        if(!segment.equals(s) && GeometricUtils.areOverlap(segment, s)){
+                            foundIntersections.addIntersection(new OverlappingIntersection(segment, s));
+                        }
+                    }
                 }
 
-                // here we have gone through all above overlapping segments (if they exist),
-                // and now we need to check for intersection of segment with first non-overlapping above segment
-                discoverIntersection(segment, aboveSegment);
 
-
-                // process under segments
-                LineSegment underSegment = status.under(segment);
-                // go down and discover all under overlapping intersections (if they exist)
-                // remind: if segments are overlapping, getIntersectionPoint() returns null
-                while(underSegment != null && GeometricUtils.areOverlap(segment, underSegment)){
-                    foundIntersections.addIntersection(new OverlappingIntersection(underSegment, segment));
-                    underSegment = status.under(underSegment);
-                }
-
-                // here we have gone through all under overlapping segments (if they exist),
-                // and now we need to check for intersection of segment with first non-overlapping under segment
-                discoverIntersection(underSegment, segment);
             }
             else if(event.getType() == Event.Type.SEGMENT_END){
                 LineSegment segment = event.getLineSegment();
-                LineSegment aboveSegment = status.above(segment);
-                LineSegment underSegment = status.under(segment);
+
+                if(!GeometricUtils.isVertical(segment)){
+                    LineSegment aboveSegment = status.above(segment);
+                    LineSegment underSegment = status.under(segment);
+
+                    // check for intersection
+                    discoverIntersection(underSegment, aboveSegment);
+                }
 
                 status.remove(segment);
-
-                // check for intersection
-                discoverIntersection(underSegment, aboveSegment);
             }
             else if(event.getType() == Event.Type.SEGMENTS_INTERSECTION){
                 LineSegment aboveSegment = event.getLineSegment2();
                 LineSegment underSegment = event.getLineSegment1();
 
-                // swap aboveSegment and underSegment
-                status.remove(aboveSegment);
-                status.remove(underSegment);
-                status.insert(aboveSegment);
-                status.insert(underSegment);
+                if(!GeometricUtils.isVertical(aboveSegment) && !GeometricUtils.isVertical(underSegment)){
+                    // swap aboveSegment and underSegment
+                    status.remove(aboveSegment);
+                    status.remove(underSegment);
+                    status.insert(aboveSegment);
+                    status.insert(underSegment);
 
-                // discover intersections between new neighbours
-                LineSegment topSegment = status.above(underSegment);
-                LineSegment bottomSegment = status.under(aboveSegment);
+                    // discover intersections between new neighbours
+                    LineSegment topSegment = status.above(underSegment);
+                    LineSegment bottomSegment = status.under(aboveSegment);
 
-                discoverIntersection(underSegment, topSegment);
-                discoverIntersection(bottomSegment, aboveSegment);
+                    // if segments needed swapping and were swapped really
+                    if(topSegment != aboveSegment && bottomSegment != underSegment){
+                        discoverIntersection(underSegment, topSegment);
+                        discoverIntersection(bottomSegment, aboveSegment);
+                    }
+                }
             }
             else{
                 throw new RuntimeException("Unknown type of event");

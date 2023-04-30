@@ -19,15 +19,27 @@ public class Main {
                 new LineSegment(7, new Point(8.6,3.263), new Point(11.1,3.575)),
                 new LineSegment(8, new Point(11.1,3.575), new Point(13.0,6.0)),
                 new LineSegment(9, new Point(13.0,6.0), new Point(15.0,7.0)),
-                new LineSegment(10, new Point(11.1,3.575), new Point(13.0,6.0))
+                new LineSegment(10, new Point(11.1,3.575), new Point(13.0,6.0)),
+                new LineSegment(11, new Point(5.0,3.0), new Point(9.0,7.0)),
+                new LineSegment(12, new Point(7.0,4.0), new Point(7.0,6.0)),
+                new LineSegment(13, new Point(7.0,6.0), new Point(7.0,8.0))
         );
 
         CartesianFrame.displaySegments(segments, "Segments");
+
+//        System.out.println(GeometricUtils.areOverlap(segments.get(5), segments.get(6)));
+
 
         IntersectionsFinder intersectionsFinder = new IntersectionsFinder();
         IntersectionsSet intersections = intersectionsFinder.findAllIntersections(segments);
 
         System.out.println("\n\nFound intersections:\n" + intersections);
         CartesianFrame.displaySegmentsAndIntersections(segments, intersections, "Intersections");
+
+
+        System.out.println("\n\n\n\n\n" + GeometricUtils.getIntersectionPoint(segments.get(11),
+                new LineSegment(new Point(7.0, 6.0), new Point(10.0, 7.0))));
+
     }
+
 }
