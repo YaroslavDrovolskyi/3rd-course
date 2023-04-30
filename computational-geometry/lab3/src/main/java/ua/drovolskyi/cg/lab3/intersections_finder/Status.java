@@ -44,7 +44,7 @@ public class Status {
                     Double x22 = s2.getEnd().getX();
 
                     if(MathUtils.areEqual(x12, x22)){ // segments have common end
-                        return Double.compare(GeometricUtils.calcLength(s1), GeometricUtils.calcLength(s2));
+                        return Integer.compare(s1.getId(), s2.getId());
                     }
                     else {
                         if(y12 >= yCommon){ // segments are upwards-directed after point (x,yCommon)

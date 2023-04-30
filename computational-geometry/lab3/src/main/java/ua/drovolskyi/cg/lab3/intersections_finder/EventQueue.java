@@ -1,6 +1,7 @@
 package ua.drovolskyi.cg.lab3.intersections_finder;
 
 import ua.drovolskyi.cg.lab3.GeometricUtils;
+import ua.drovolskyi.cg.lab3.LineSegment;
 
 import java.util.Comparator;
 import java.util.SortedSet;
@@ -42,11 +43,42 @@ public class EventQueue {
     private static final Comparator<Event> eventComparator = new Comparator<Event>() {
         @Override
         public int compare(Event e1, Event e2) {
+            if(e1.equals(e2)){
+                return 0;
+            }
+
             if(!e1.getPoint().equals(e2.getPoint())){
                 return GeometricUtils.getPointComparator().compare(e1.getPoint(), e2.getPoint());
             }
-            else{
+            else if(e1.getType() != e2.getType()){
                 return eventTypeComparator.compare(e1.getType(), e2.getType());
+            }
+            else{ // same point and same type of event
+                Event.Type eventType = e1.getType();
+                if(eventType == Event.Type.SEGMENT_START || eventType == Event.Type.SEGMENT_END){
+                    return Integer.compare(e1.getLineSegment().getId(), e2.getLineSegment().getId());
+                }
+                else{ // intersection
+                    LineSegment s11 = e1.getLineSegment1();
+                    LineSegment s12 = e1.getLineSegment2();
+                    LineSegment s21 = e2.getLineSegment1();
+                    LineSegment s22 = e2.getLineSegment2();
+                    // here ((s11 != s21) || (s12 != s22)) && ((s11 != s22) || (s12 != s21)),
+                    // because e1 != e2
+
+                    if(s11.equals(s21)){
+                        if(s12.equals(s22)){
+                            // we should never go there, because of previous conditions
+                            throw new RuntimeException("Something wrong with segments ID's");
+                        }
+                        else{
+                            return Integer.compare(s12.getId(), s22.getId());
+                        }
+                    }
+                    else{
+                        return Integer.compare(s11.getId(), s21.getId());
+                    }
+                }
             }
         }
     };

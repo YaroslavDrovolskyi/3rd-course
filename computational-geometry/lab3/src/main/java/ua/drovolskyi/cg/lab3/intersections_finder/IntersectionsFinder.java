@@ -32,24 +32,10 @@ public class IntersectionsFinder {
 
             System.out.println("\n\n====================================== Current event: " + event);
 
-            // if segment start:
-            // if insert vertical line, need to check for intersections with not-vertical segments,
-            // and for overlapping with vertical segments
-            // if insert not vertical line, we should insert as usual + check for intersection with all vertical segments
-
-            // if segment intersection: change order only if this segments are not-vertical
-
-            // if we change sweepingLineX to ew value, we should clear all vertical lines form status
-
 
             if(event.getType() == Event.Type.SEGMENT_START){
                 LineSegment segment = event.getLineSegment();
-
-                if(segment.getId().equals(8)){
-                    System.out.println("\nHere!\n"); /////////////////////////////////////////////////
-                }
-
-
+                
                 status.insert(segment);
 
                 if(!GeometricUtils.isVertical(segment)){
@@ -64,7 +50,11 @@ public class IntersectionsFinder {
 
                     // here we have gone through all above overlapping segments (if they exist),
                     // and now we need to check for intersection of segment with first non-overlapping above segment
-                    discoverIntersection(segment, aboveSegment);
+                    // handle cases when overlapping segments end in point of intersection with current segment
+                    while(aboveSegment != null && discoverIntersection(segment, aboveSegment)){
+                        aboveSegment = status.above(aboveSegment);
+                    }
+//                    discoverIntersection(segment, aboveSegment);
 
 
                     // process under segments
@@ -78,7 +68,11 @@ public class IntersectionsFinder {
 
                     // here we have gone through all under overlapping segments (if they exist),
                     // and now we need to check for intersection of segment with first non-overlapping under segment
-                    discoverIntersection(underSegment, segment);
+                    // handle cases when overlapping segments end in point of intersection with current segment
+                    while(underSegment != null && discoverIntersection(underSegment, segment)){
+                        underSegment = status.under(underSegment);
+                    }
+//                    discoverIntersection(underSegment, segment);
 
                     // check for intersection with vertical segments
                     for(LineSegment s : status.getVerticalSegments()){
@@ -133,8 +127,12 @@ public class IntersectionsFinder {
 
                     // if segments needed swapping and were swapped really
                     if(topSegment != aboveSegment && bottomSegment != underSegment){
-                        discoverIntersection(underSegment, topSegment);
-                        discoverIntersection(bottomSegment, aboveSegment);
+                        if(status.under(underSegment) == aboveSegment &&
+                                status.above(aboveSegment) == underSegment){ // if segments really neighboring
+                            discoverIntersection(underSegment, topSegment);
+                            discoverIntersection(bottomSegment, aboveSegment);
+                        }
+
                     }
                 }
             }

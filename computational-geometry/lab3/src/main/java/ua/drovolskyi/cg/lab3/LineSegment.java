@@ -48,11 +48,11 @@ public class LineSegment {
         if(this == obj){
             return true;
         }
-        if(!(obj instanceof LineSegment)){
+        if(!(obj instanceof LineSegment lineSegment)){
             return false;
         }
-        LineSegment lineSegment = (LineSegment)obj;
-        return this.getStart().equals(lineSegment.getStart()) &&
+        return this.getId().equals(lineSegment.getId()) &&
+                this.getStart().equals(lineSegment.getStart()) &&
                 this.getEnd().equals(lineSegment.getEnd());
     }
 
