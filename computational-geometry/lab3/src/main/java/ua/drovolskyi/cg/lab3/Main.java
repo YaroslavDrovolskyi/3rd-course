@@ -18,10 +18,10 @@ public class Main {
                 new LineSegment(6, new Point(6.0,2.0), new Point(6.0,11.0)),
                 new LineSegment(7, new Point(10.0,5.0), new Point(10.0,8.0)),
                 new LineSegment(8, new Point(11.0,8.0), new Point(14.0,14.0)),
-                new LineSegment(9, new Point(13.0,12.0), new Point(16.0,18.0))
-//                ,new LineSegment(10, new Point(1.0,4.0), new Point(17.0,10.0)),
-//                new LineSegment(11, new Point(5.0,11.0), new Point(17.0,7.0)),
-//                new LineSegment(12, new Point(15.0,6.0), new Point(15.0,11.0))
+                new LineSegment(9, new Point(13.0,12.0), new Point(16.0,18.0)),
+                new LineSegment(10, new Point(1.0,4.0), new Point(17.0,10.0)),
+                new LineSegment(11, new Point(5.0,11.0), new Point(17.0,7.0)),
+                new LineSegment(12, new Point(15.0,6.0), new Point(15.0,11.0))
         );
 
         CartesianFrame.displaySegments(segments, "Segments");
