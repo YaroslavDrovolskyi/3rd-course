@@ -63,8 +63,28 @@ public class CoupledQueue {
         return points.lower(p);
     }
 
+    public Point getNextPointBounded(Point p){
+        Point result = points.higher(p);
+        if(result == null){
+            return p;
+        }
+        return result;
+    }
+
+    public Point getPrevPointBounded(Point p){
+        Point result = points.lower(p);
+        if(result == null){
+            return p;
+        }
+        return result;
+    }
+
     public Boolean isEmpty(){
         return points.isEmpty();
+    }
+
+    public Boolean contains(Point p){
+        return points.contains(p);
     }
 
     @Override

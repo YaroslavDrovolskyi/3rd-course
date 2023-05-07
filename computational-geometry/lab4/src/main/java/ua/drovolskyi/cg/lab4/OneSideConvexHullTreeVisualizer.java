@@ -13,7 +13,7 @@ public class OneSideConvexHullTreeVisualizer {
         String dotString = toGraphvizString(tree, title);
 
         MutableGraph g = new Parser().read(dotString);
-        Graphviz.fromGraph(g).width(700).render(Format.PNG).toFile(new File(filename));
+        Graphviz.fromGraph(g).width(1400).render(Format.PNG).toFile(new File(filename));
     }
     private static String toGraphvizString(OneSideConvexHull tree, String title){
         StringBuilder sb = new StringBuilder();

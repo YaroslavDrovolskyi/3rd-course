@@ -2,6 +2,46 @@ package ua.drovolskyi.cg.lab4;
 
 import java.util.*;
 
+
+
+/**
+ * Possible improvements for class:
+ <ul>
+    <li>Implement CoupledQueue in that way to split it in O(log(n)) time (instead of O(n))
+        <p>(this will reduce time complexity of inserting and removing points)</p>
+    </li>
+    <li>Implement CoupledQueue in that way to couple them in O(log(n)) time (instead of O(nlog(n)))
+        <p>(this will reduce time complexity of going up after inserting and removing point)</p></li>
+    <li>When finding bridge, use iterator for CoupledQueue object instead of getNextBounded() and getPrevBounded().
+        <p>(this will reduce the time complexity of finding bridge from O(log^2) to O(log))</p></li>
+    <li>Make optionally storing or not the convexHull in each node
+        (for this you need to uncomment/comment specific code in fixGoUp()()).
+        Storing convexHull in each node increases space complexity, but it is useful for
+        educational purposes and debug (if you want to display it using visualizer)
+        <p>/Not storing convexHull in node means keep this field null.
+        We can't remove this field because it is used in inserting and removing point/</p></li>
+    <li>In inserting and removing, if no changes have been performed,
+        make fixGoUp() only setting convexHull of n and of n.sibling to null
+        (instead of real fixing)</li>
+    <li>Handle case when connecting two convexHulls that contains horizontal lines.
+        For example, now if left CH is a-b and right CH is c-d, (a,b,c,d have the same y-coordinates)
+        their common convex hull is a-d, but correct is a-b-c-d.
+        For better understanding launch Main.testHorizontalPoints()
+        <p>The same situation is when a-b-c-d have the same x-coordinates</p></li>
+ </ul>
+
+ <br>
+ <p>Table of time complexities of some operations in algorithm:</p>
+
+ <pre>
+ |        Operation       | Ideal complexity | Implementation complexity |
+ |------------------------|------------------|---------------------------|
+ | CoupledQueue.split()   | O(log(n))        | O(n)                      |
+ | Find bridge            | O(log(n))        | O(log^2(n))               |
+ | CoupledQueue.couple()  | O(log(n))        | O(n*log(n))               |
+ </pre>
+ <p>Ways how to fix non-ideal complexities described above in Possible improvements.</p>
+ */
 public class OneSideConvexHull {
     private static final Comparator<Point> topPointComparator = new Comparator<Point>() {
         @Override
@@ -25,7 +65,6 @@ public class OneSideConvexHull {
             }
         }
     };
-
     private static final Comparator<Point> bottomPointComparator = new Comparator<Point>() {
         @Override
         public int compare(Point p1, Point p2) {
@@ -49,6 +88,14 @@ public class OneSideConvexHull {
         }
     };
 
+    public static Comparator<Point> getTopPointComparator(){
+        return topPointComparator;
+    }
+
+    public static Comparator<Point> getBottomPointComparator(){
+        return bottomPointComparator;
+    }
+
     public static OneSideConvexHull createTopSideConvexHull(){
         return new OneSideConvexHull(topPointComparator);
     }
@@ -68,6 +115,43 @@ public class OneSideConvexHull {
         return this.root;
     }
 
+    // check if points belongs to convex hull
+    public Boolean contains(Point p){
+        if(root != null){
+            return root.subConvexHull.contains(p);
+        }
+        return false;
+    }
+
+    public CoupledQueue getPoints(){
+        if(getRoot() != null){
+            return getRoot().getSubConvexHull();
+        }
+        return null;
+    }
+
+    public NavigableSet<Point> getAllPoints(){
+        NavigableSet<Point> result = new TreeSet<>(pointComparator);
+        if(getRoot() != null){
+            getAllPointsImpl(getRoot(), result);
+        }
+        return result;
+    }
+
+    private void getAllPointsImpl(Node node, NavigableSet<Point> points){
+        if(node.isLeaf()){
+            points.add(node.getPoint());
+        }
+        else{
+            getAllPointsImpl(node.getLeft(), points);
+            getAllPointsImpl(node.getRight(), points);
+        }
+    }
+
+    public Boolean isEmpty(){
+        return root == null;
+    }
+
     public void insert(Point p){
         if(root == null){
             this.root = Node.createLeafNode(null, p, pointComparator);
@@ -78,9 +162,15 @@ public class OneSideConvexHull {
             insertIntoSubtreeGoDown(root, p);
         }
     }
-    //////////////////////////////////////////////////////////////////////////////////
-    // + if point 2.2 then go to nearest left-parent and fix field 'point'
-    // + fix split CoupledQueue to get possibility to get empty set (array of size 0 is allowed)
+
+    public void remove(Point p){
+        if(this.root == null){
+            throw new IllegalStateException("OneSideConvexHull is empty");
+        }
+        root.convexHull = root.subConvexHull;
+        removeFromSubtreeGoDown(root, p);
+    }
+
 
     // convexHull is convex hull for node
     private void insertIntoSubtreeGoDown(Node node, Point p){
@@ -158,13 +248,23 @@ public class OneSideConvexHull {
                 }
 
             }
-            insertIntoSubtreeGoUp(node);
+            fixGoUp(node);
         }
     }
 
-    private void insertIntoSubtreeGoUp(Node node){
+    // Recursively go up from node to root and for each node n on the way do following:
+    //      - calc and set subConvexHull of n and n.sibling
+    //      - calc and set pivotPoint of n.parent
+    // All mentioned actions are performing only because n and its sibling have correct convexHull fields
+    // So, this function can be called ONLY IF convexHull of n and of n.sibling are not null
+    // This method is used to fix nodes fields after inserting or removing
+    // This method set convexHull of n and n.sibling to null (if you uncomment some code in the method body)
+    private void fixGoUp(Node node){
         if(this.root == node) {
             node.subConvexHull = node.convexHull;
+
+            ///////////////// uncomment it if you don't want to store convex hull in each node
+            // node.convexHull = null;
         }
         else{
             Node parent = node.parent;
@@ -183,10 +283,97 @@ public class OneSideConvexHull {
             parent.convexHull = connectionResult.u;
             parent.pivotPoint = connectionResult.pivotPoint;
 
-            insertIntoSubtreeGoUp(parent);
+            fixGoUp(parent);
+
+            ///////////////// uncomment it if you don't want to store convex hull in each node
+            // node.convexHull = null;
+            // sibling.convexHull = null;
         }
-//        node.convexHull = null; // comment it if you don;t want to store convex hull in each node
     }
+
+    private void removeFromSubtreeGoDown(Node node, Point p){
+        // here node.convexHull is filled
+
+        if(!node.isLeaf()){
+            List<CoupledQueue> splitting = CoupledQueue.splitLeftmost(node.convexHull, node.pivotPoint);
+
+            node.left.convexHull = CoupledQueue.couple(splitting.get(0), node.left.subConvexHull);
+            node.right.convexHull = CoupledQueue.couple(node.right.subConvexHull, splitting.get(1));
+
+            if(pointComparator.compare(p, node.point) <= 0){
+                removeFromSubtreeGoDown(node.left, p);
+            }
+            else{
+                removeFromSubtreeGoDown(node.right, p);
+            }
+        }
+        else{
+            if(pointComparator.compare(p, node.getPoint()) != 0){ // if tree does not contain p
+                fixGoUp(node);
+            }
+            else{
+                if(node.parent != null){
+                    Node parent = node.getParent();
+                    Node sibling = node.getSibling();
+
+                    if(node.parent.parent != null){
+                        if(node.parent.isLeftChild()){ // node parent is left child
+                            if(node.isLeftChild()){ // case 1
+                                parent.parent.left = sibling;
+                                sibling.parent = parent.parent;
+                            }
+                            else{ // case 2
+                                parent.parent.left = sibling;
+                                sibling.parent = parent.parent;
+                                sibling.parent.point = sibling.point;
+                            }
+
+                        }
+                        else{ // node parent is right child
+                            if(node.isRightChild()){ // case 3
+                                parent.parent.right = sibling;
+                                sibling.parent = parent.parent;
+                                fixMaxPointInFirstRightParent(sibling);
+                            }
+                            else{ // case 4
+                                parent.parent.right = sibling;
+                                sibling.parent = parent.parent;
+                            }
+                        }
+                        fixGoUp(sibling);
+                    }
+                    else{ // tree contains node, and its sibling(with sibling subtree) and root
+                        // remove node and its parent (current root), make node's sibling a root
+
+                        sibling.parent = null;
+                        this.root = sibling;
+//                        sibling.subConvexHull = sibling.convexHull;
+                        fixGoUp(this.root);
+                    }
+                }
+                else{ // if node is root
+                    this.root = null;
+                }
+            }
+        }
+    }
+
+
+    // go to the first node n whose left subtree contains newNode
+    // in order to fix point of n (max point in left subtree)
+    // node.point must be max point in left subtree in which node is located
+    private void fixMaxPointInFirstRightParent(Node node){
+        Point maxPoint = node.getPoint();
+        while(node.parent != null && node != node.parent.left){
+            node = node.parent;
+        }
+        if(node.parent != null){
+            node.parent.point = maxPoint;
+        }
+    }
+
+
+
 
     // x is x-coordinate of the biggest point in left tree we are processing now
     // according to slide 10
@@ -226,8 +413,8 @@ public class OneSideConvexHull {
     }
 
 
-    // p1 is point from left convex hull p2 is- from right one
-    // x is x-coordinate of the biggest point in left tree we now processing
+    // p1 is point from left convex hull, p2 is from right one
+    // x is x-coordinate of the biggest point in left subtree we now processing
     private List<Point> findSupportingPoints(CoupledQueue leftConvexHull, CoupledQueue rightConvexHull, Double x){
         Point p1 = leftConvexHull.getMiddlePoint();
         Point p2 = rightConvexHull.getMiddlePoint();
@@ -251,49 +438,51 @@ public class OneSideConvexHull {
                     );
 
                     // let comparing vertical line l be x coordinate of the biggest point in left subtree of parent
+                    // if intersection is null (l1 l2 are parallel or are overlapping) consider intersection is left to l
+                    // is intersection is on l, consider intersection is left to l
                     if(intersection == null ||
                         MathUtils.areEqual(intersection.getX(), x) ||
                             intersection.getX() < x){ // p is left to line l
-                        p1 = leftConvexHull.getNextPoint(p1);
+                        p1 = leftConvexHull.getNextPointBounded(p1);
                         // p2 does not change
                     }
                     else{ // p is right to line l
                         // p1 does not change
-                        p2 = rightConvexHull.getPrevPoint(p2);
+                        p2 = rightConvexHull.getPrevPointBounded(p2);
                     }
                 }
                 else if(typeP2 == PointType.SUPPORTING){
-                    p1 = leftConvexHull.getNextPoint(p1);
-                    p2 = rightConvexHull.getNextPoint(p2);
+                    p1 = leftConvexHull.getNextPointBounded(p1);
+                    p2 = rightConvexHull.getNextPointBounded(p2);
                 }
                 else if(typeP2 == PointType.CONVEX){
-                    p2 = rightConvexHull.getNextPoint(p2);
+                    p2 = rightConvexHull.getNextPointBounded(p2);
                 }
             }
             else if(typeP1 == PointType.SUPPORTING){
                 if(typeP2 == PointType.CONCAVE){
-                    p1 = leftConvexHull.getPrevPoint(p1);
-                    p2 = rightConvexHull.getPrevPoint(p2);
+                    p1 = leftConvexHull.getPrevPointBounded(p1);
+                    p2 = rightConvexHull.getPrevPointBounded(p2);
                 }
                 else if(typeP2 == PointType.SUPPORTING){
                     return Arrays.asList(p1, p2);
                 }
                 else if(typeP2 == PointType.CONVEX){
-                    p1 = leftConvexHull.getPrevPoint(p1);
-                    p2 = rightConvexHull.getNextPoint(p2);
+                    p1 = leftConvexHull.getPrevPointBounded(p1);
+                    p2 = rightConvexHull.getNextPointBounded(p2);
                 }
             }
             else if(typeP1 == PointType.CONVEX){
                 if(typeP2 == PointType.CONCAVE){
-                    p1 = leftConvexHull.getPrevPoint(p1);
+                    p1 = leftConvexHull.getPrevPointBounded(p1);
                 }
                 else if(typeP2 == PointType.SUPPORTING){
-                    p1 = leftConvexHull.getPrevPoint(p1);
-                    p2 = rightConvexHull.getNextPoint(p2);
+                    p1 = leftConvexHull.getPrevPointBounded(p1);
+                    p2 = rightConvexHull.getNextPointBounded(p2);
                 }
                 else if(typeP2 == PointType.CONVEX){
-                    p1 = leftConvexHull.getPrevPoint(p1);
-                    p2 = rightConvexHull.getNextPoint(p2);
+                    p1 = leftConvexHull.getPrevPointBounded(p1);
+                    p2 = rightConvexHull.getNextPointBounded(p2);
                 }
             }
         }
@@ -355,17 +544,9 @@ public class OneSideConvexHull {
         throw new RuntimeException("Unknown classification of points");
     }
 
-    /*
-    private List<PointType> classifyPoint(
-            Point prevP, Point p, Point nextP,
-            Point endOfVector
-    ){
-
-    }
-
-     */
 
     // if point is on the line, then it is UNDER the line, and method returns 1
+    // if point is null, then it is UNDER the line, and method returns 1
     private int relativePosition(Point start, Point end, Point p){
         if(p == null){
             return 1;
@@ -395,10 +576,11 @@ public class OneSideConvexHull {
         private Node parent;
         private Node left;
         private Node right;
-        private Point point; // point (if leaf node) or maximum in left subtree (otherwise)
+        private Point point; // point (if leaf node), or maximum in left subtree (otherwise)
         private Point pivotPoint = null; // it is left end of bridge between convex hulls
+        private CoupledQueue convexHull = null; // is convex hull for all points in node's subtree
+        // part of node's convex hull that does not belong to convex hull of node.parent
         private CoupledQueue subConvexHull = null;
-        private CoupledQueue convexHull = null;
 
 
         public static Node createLeafNode(Node parent, Point point, Comparator<Point> pointComparator){
@@ -463,6 +645,32 @@ public class OneSideConvexHull {
 
         public CoupledQueue getConvexHull(){
             return this.convexHull;
+        }
+
+        public Node getSibling(){
+            if(this.parent != null){
+                if(this == this.parent.left){ // this is left child
+                    return this.parent.right;
+                }
+                else{ // this is right child
+                    return this.parent.left;
+                }
+            }
+            return null;
+        }
+
+        public Boolean isLeftChild(){
+            if(this.parent != null){
+                return this == this.parent.left;
+            }
+            return null;
+        }
+
+        public Boolean isRightChild(){
+            if(this.parent != null){
+                return this == this.parent.right;
+            }
+            return null;
         }
     }
 }
