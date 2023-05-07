@@ -50,6 +50,10 @@ public class CoupledQueue {
         points.add(p);
     }
 
+    public List<Point> getPoints(){
+        return points.stream().toList();
+    }
+
     public Point getMiddlePoint(){
         Point[] array = points.toArray(new Point[0]);
         return array[array.length / 2];
