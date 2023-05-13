@@ -28,10 +28,12 @@ public class Main {
                 new Point(16, 18.0, 5.0),
                 new Point(17, 16.0, 2.0),
                 new Point(18, 3.0, 9.0),
-                new Point(19, 17.0, 2.0)
+                new Point(19, 17.0, 2.0),
+                new Point(20, 1.0, 1.0),
+                new Point(21, 10.0, 10.0)
         );
 //        List<Integer> removeIndices = Arrays.asList(5, 1, 4, 3, 6, 0, 2);
-        List<Integer> removeIndices = Arrays.asList(9, 2, 10, 17, 1, 0);
+        List<Integer> removeIndices = Arrays.asList(14); // , 17, 1, 0
         // 17, 1, 0
 
         ConvexHull u = new ConvexHull();

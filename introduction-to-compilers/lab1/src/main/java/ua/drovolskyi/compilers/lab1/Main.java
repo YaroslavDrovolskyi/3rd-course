@@ -1,5 +1,8 @@
 package ua.drovolskyi.compilers.lab1;
 
+import ua.drovolskyi.compilers.lab1.lexer.CharStreamStringImpl;
+import ua.drovolskyi.compilers.lab1.lexer.Lexer;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

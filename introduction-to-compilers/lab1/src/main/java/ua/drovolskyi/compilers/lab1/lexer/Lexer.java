@@ -1,4 +1,7 @@
-package ua.drovolskyi.compilers.lab1;
+package ua.drovolskyi.compilers.lab1.lexer;
+
+import ua.drovolskyi.compilers.lab1.Token;
+import ua.drovolskyi.compilers.lab1.lexer.CharStream;
 
 import java.util.Arrays;
 import java.util.LinkedList;

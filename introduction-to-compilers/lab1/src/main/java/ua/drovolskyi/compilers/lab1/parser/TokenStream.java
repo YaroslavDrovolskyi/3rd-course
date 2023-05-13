@@ -1,0 +1,17 @@
+package ua.drovolskyi.compilers.lab1.parser;
+
+import ua.drovolskyi.compilers.lab1.Token;
+
+// before first call of .consume() current index is -1 and calling get-methods would be invalid
+public interface TokenStream {
+    void consume();
+    void consumeTokens(Integer count);
+    void returnToken();
+    void returnTokens(Integer count);
+    Token getCurrentToken();
+    Integer getCurrentIndex();
+    Boolean isLastToken();
+    Boolean isEnded();
+    Token lookahead(Integer offset);
+    Integer availableTokens();
+}

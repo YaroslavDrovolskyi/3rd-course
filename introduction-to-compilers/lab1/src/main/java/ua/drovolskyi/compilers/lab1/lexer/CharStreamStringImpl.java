@@ -1,6 +1,8 @@
-package ua.drovolskyi.compilers.lab1;
+package ua.drovolskyi.compilers.lab1.lexer;
 
-public class CharStreamStringImpl implements CharStream{
+import ua.drovolskyi.compilers.lab1.lexer.CharStream;
+
+public class CharStreamStringImpl implements CharStream {
     private String string;
     private Integer currentIndex;
 

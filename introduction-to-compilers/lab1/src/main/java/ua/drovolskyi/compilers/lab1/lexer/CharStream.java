@@ -1,4 +1,4 @@
-package ua.drovolskyi.compilers.lab1;
+package ua.drovolskyi.compilers.lab1.lexer;
 
 public interface CharStream {
     String getString(Integer startIndex, Integer endIndex);
