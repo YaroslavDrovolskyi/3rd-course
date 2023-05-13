@@ -2,6 +2,10 @@ package ua.drovolskyi.compilers.lab1;
 
 import ua.drovolskyi.compilers.lab1.lexer.CharStreamStringImpl;
 import ua.drovolskyi.compilers.lab1.lexer.Lexer;
+import ua.drovolskyi.compilers.lab1.parser.AbstractSyntaxTree;
+import ua.drovolskyi.compilers.lab1.parser.AstVisualizer;
+import ua.drovolskyi.compilers.lab1.parser.Parser;
+import ua.drovolskyi.compilers.lab1.parser.TokenStreamListImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,15 +14,21 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String filename = "src/main/resources/5.rb";
+        String filename = "src/main/resources/2.rb";
         String code = new String(Files.readAllBytes(Paths.get(filename)));
 
         Lexer lexer = new Lexer(new CharStreamStringImpl(code));
         List<Token> tokens = lexer.tokenize();
 
-        System.out.println("Tokens:");
+        Parser parser = new Parser(new TokenStreamListImpl(tokens));
+        AbstractSyntaxTree ast = parser.parse();
+
+        AstVisualizer visualizer = new AstVisualizer();
+        visualizer.visualize(ast, "ast1.png");
+
+//        System.out.println("Tokens:");
 //        printTokensList(tokens);
-        printTokensListWithoutWhitespaces(tokens);
+//        printTokensListWithoutWhitespaces(tokens);
     }
 
 

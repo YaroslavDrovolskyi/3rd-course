@@ -47,7 +47,7 @@ public class Parser {
     // in lexer transform SIGIL + IDENTIFIER => IDENTIFIER
     // in lexer transform (IDENTIFIER + !) or (IDENTIFIER + ?) => IDENTIFIER
     // remove (WHITESPACE && non-terminator) and COMMENT from TokenStream
-    // do not consume before first calling of parseExpressionRecursively
+    // Problem: child do not added to nodes
     public AbstractSyntaxTree parse(){
         AstNode root =
                 new AstNode(AstNode.Type.PROGRAM, null);
@@ -56,7 +56,10 @@ public class Parser {
             tokenStream.consume();
             // here, currentToken is start of new expression
 
-            AstNode expression = parseExpressionRecursively(currentPrecedence());
+            AstNode expression = null;
+            if(tokenStream.isEnded()){
+                expression = parseExpressionRecursively(currentPrecedence());
+            }
 
             if(expression != null){
                 root.addChild(expression);
@@ -156,9 +159,7 @@ public class Parser {
 
     private AstNode parseSimpleExpression(){
         if(tokenStream.isEnded() || isTerminator(tokenStream.getCurrentToken())){
-            // parseTerminator();
-
-            //throw new RuntimeException("Try to parse ended token stream");
+            return null;
         }
 
         Token t = tokenStream.getCurrentToken();
@@ -178,10 +179,6 @@ public class Parser {
         else if(t.getType() == Token.Type.IDENTIFIER){
             return parseIdentifier();
         }
-        else if(t.getType() == Token.Type.SIGIL){
-            /////////////////////////////////////////// NEED to report unexpected token error
-            // because all correct SIGILS were joined to following identifiers
-        }
         else if (t.getValue().equals("return")){
             return parseReturn();
         }
@@ -192,20 +189,72 @@ public class Parser {
             return parseConditional();
         }
         else if(t.getValue().equals("while")){
-
-        }
-        else if(t.getValue().equals("for")){ /// ?????
-
+            return parseRepetition();
         }
         else if(t.getValue().equals("(")){
-            // parseGroupedExpression()
+            return parseGroupedExpression();
         }
         else if(UNARY_OPERATORS.contains(t.getValue())){
-            // parseUnaryOperator()
+            return parseUnaryOperator();
         }
 
         /////////////////////////////////////////// here NEED report about unrecognized token error
         return null;
+    }
+
+    /**
+     * Current token is '('
+     * @return
+     */
+    private AstNode parseGroupedExpression(){
+        tokenStream.consume();
+        AstNode expr = parseExpressionRecursively(currentPrecedence());
+
+        if(!tokenStream.isEnded() &&
+                tokenStream.lookahead(1).getValue().equals(")")){
+            tokenStream.consume();
+            return expr;
+        }
+
+        return null;
+    }
+
+    /**
+     * Current token is unary operator
+     * @return
+     */
+    private AstNode parseUnaryOperator(){
+        AstNode node = new AstNode(AstNode.Type.UNARY_OPERATOR, null);
+        tokenStream.consume();
+        node.addChild(parseExpressionRecursively(MAX_PRECEDENCE));
+
+        return node;
+    }
+
+
+    // current token is 'while'
+    private AstNode parseRepetition(){
+        AstNode repetitionNode = new AstNode(AstNode.Type.REPETITION, null);
+        tokenStream.consume();
+
+        // condition of repetition
+        AstNode condition = new AstNode(AstNode.Type.CONDITION, null);
+        condition.addChild(parseExpressionRecursively(currentPrecedence()));
+        repetitionNode.addChild(condition);
+
+        if(!reportIfUnexpectedEnd()){
+            tokenStream.consume();
+        }
+        else{
+            return null;
+        }
+
+        // block (repetition's body)
+        AstNode block = new AstNode(AstNode.Type.BLOCK, null);
+        block.addChild(parseBlock());
+        repetitionNode.addChild(block);
+
+        return repetitionNode;
     }
 
 
@@ -469,6 +518,9 @@ public class Parser {
     }
 
     private Integer currentPrecedence(){
+        if(tokenStream.isEnded()){
+            return LOWEST_PRECEDENCE;
+        }
         return getPrecedence(tokenStream.getCurrentToken());
     }
 

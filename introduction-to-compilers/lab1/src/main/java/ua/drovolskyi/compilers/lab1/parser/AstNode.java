@@ -30,25 +30,47 @@ public class AstNode {
     }
 
     public String getValue(){
-        return value;
+        return this.value;
+    }
+
+    public Type getType(){
+        return this.type;
+    }
+
+    public List<AstNode> getChilds(){
+        return this.childs;
     }
 
     public enum Type {
-        PROGRAM,
-        VAR_BINDING,
-        CLASS_DEFINITION,
-        FUNCTION_DEFINITION,
-        BINARY_OPERATOR,
-        FUNCTION_CALL,
-        LITERAL_NUMBER,
-        LITERAL_STRING,
-        LITERAL_BOOLEAN,
-        NIL,
-        IDENTIFIER,
-        RETURN,
-        FUNCTION_PARAMETERS,
-        BLOCK,
-        CONDITIONAL,
-        CONDITION
+        PROGRAM("PROGRAM"),
+        VAR_BINDING("VAR_BINDING"),
+        CLASS_DEFINITION("CLASS_DEFINITION"),
+        FUNCTION_DEFINITION("FUNCTION_DEFINITION"),
+        BINARY_OPERATOR("BINARY_OPERATOR"),
+        FUNCTION_CALL("FUNCTION_CALL"),
+        LITERAL_NUMBER("LITERAL_NUMBER"),
+        LITERAL_STRING("LITERAL_STRING"),
+        LITERAL_BOOLEAN("LITERAL_BOOLEAN"),
+        NIL("NIL"),
+        IDENTIFIER("IDENTIFIER"),
+        RETURN("RETURN"),
+        FUNCTION_PARAMETERS("FUNCTION_PARAMETERS"),
+        BLOCK("BLOCK"),
+        CONDITIONAL("CONDITIONAL"),
+        CONDITION("CONDITION"),
+        REPETITION("REPETITION"),
+        EXPRESSION("EXPRESSION"),
+        UNARY_OPERATOR("UNARY_OPERATOR");
+
+        private final String label;
+
+        private Type(String label){
+            this.label = label;
+        }
+
+        @Override
+        public String toString(){
+            return this.label;
+        }
     }
 }

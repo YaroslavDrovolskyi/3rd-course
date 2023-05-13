@@ -7,5 +7,9 @@ public class AbstractSyntaxTree {
         this.root = root;
     }
 
+    public AstNode getRoot(){
+        return this.root;
+    }
+
 
 }
