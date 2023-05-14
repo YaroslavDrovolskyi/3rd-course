@@ -267,6 +267,9 @@ public class Parser {
         else if (t.getValue().equals("return")){
             return parseReturn();
         }
+        else if(t.getValue().equals("class")){
+            return parseClassDefinition();
+        }
         else if(t.getValue().equals("def")){
             return parseFunctionDefinition();
         }
@@ -349,6 +352,64 @@ public class Parser {
         }
 
         return repetitionNode;
+    }
+
+    /**
+     * current token is 'class' <br/>
+     * Class is sequence of methods
+     */
+    private AstNode parseClassDefinition(){
+        if(!tokenStream.isLastToken()){
+            tokenStream.consume();
+            Token currentToken = tokenStream.getCurrentToken();
+
+            if(currentToken.getType() == Token.Type.IDENTIFIER){
+                String lexeme = currentToken.getValue();
+                if(!lexeme.endsWith("?") && !lexeme.endsWith("!") &&
+                        !lexeme.startsWith("$") && !lexeme.startsWith("@") && !lexeme.startsWith("@@")){
+                    AstNode classNode = new AstNode(AstNode.Type.CLASS_DEFINITION, lexeme);
+
+                    if(tokenStream.isLastToken() || !isTerminator(tokenStream.lookahead(1))){
+                        //////////////////////////////// NEED report about unexpected token (terminator expected)
+                        return classNode;
+                    }
+                    tokenStream.consume();
+
+                    while(!tokenStream.isLastToken() && tokenStream.lookahead(1).getValue().equals("def")){
+                        tokenStream.consume();
+                        classNode.addChild(parseFunctionDefinition());
+                        // here current token is 'end' of function
+
+                        while(!tokenStream.isLastToken() && isTerminator(tokenStream.lookahead(1))){
+                            tokenStream.consume();
+                        }
+                    }
+
+                    if(tokenStream.isLastToken()){
+                        /////////////////////////////////// NEED to report about unexpected end of file (class 'end' expected)
+                    }
+                    else if(tokenStream.lookahead(1).getValue().equals("end")){
+                        tokenStream.consume();
+
+                    }
+                    else{
+                        ////////////////////////////////// NEED to report about unexpected token (class 'end' expected)
+                    }
+                    return classNode;
+                }
+                else{
+                    //////////////////////////////////// NEED to report that identifier (class name) expected
+                }
+            }
+            else{
+                ///////////////////////////////// NEED to report about unexpected token (identifier expected)
+            }
+        }
+        else{
+            ////////////////////////////////////// NEED to report about unexpected end of file
+        }
+
+        return null;
     }
 
 

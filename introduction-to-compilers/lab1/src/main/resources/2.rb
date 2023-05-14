@@ -1,22 +1,26 @@
-def func_test_loop()
-    until x > 5
-        a = 5
-        b = 5*5**5
+class TestClass
+    def func_test_loop()
+        until x > 5
+            a = 5
+            b = 5*5**5
+        end
+        return a+b
     end
-    return a+b
+
+
+
+    def func_f(x, n, c)
+        if (x > 2 && x < n)
+            return func_y(x, n, c)
+        elsif (x > n && x < 2*n)
+            return func_z(x, n, c)
+        else
+            return func_y(x, n, c) + func_z(x, n, c)
+        end
+    end
 end
 
 
-
-def func_f(x, n, c)
-    if (x > 2 && x < n)
-        return func_y(x, n, c)
-    elsif (x > n && x < 2*n)
-        return func_z(x, n, c)
-    else
-        return func_y(x, n, c) + func_z(x, n, c)
-    end
-end
 
 
 def func_test()
