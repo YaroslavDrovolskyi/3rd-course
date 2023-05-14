@@ -2,7 +2,7 @@ package ua.drovolskyi.compilers.lab1;
 
 public class Token {
     private final Type type;
-    private final String value;
+    private String value;
 
     public Token(Type type, String value){
         this.type = type;
@@ -15,6 +15,10 @@ public class Token {
 
     public String getValue() {
         return value;
+    }
+
+    public void setValue(String value){
+        this.value = value;
     }
 
     public static enum Type{

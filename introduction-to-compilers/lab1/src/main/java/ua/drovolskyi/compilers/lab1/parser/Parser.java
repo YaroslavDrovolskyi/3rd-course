@@ -12,6 +12,7 @@ public class Parser {
             Arrays.asList("+", "-", "*", "/", "==", "!=", ">", "<", ">=", "<=");
     private static final List<String> LOGICAL_OPERATORS =
             Arrays.asList("and", "or", "not", "&&", "||", "!");
+    private static final List<String> SIGILS = Arrays.asList("$", "@@", "@");
 
     private final Integer LOWEST_PRECEDENCE = 0;
     private final Integer MAX_PRECEDENCE = 7;
@@ -40,6 +41,8 @@ public class Parser {
         operatorsPrecedence.put("-", 5);
         operatorsPrecedence.put("*", 6);
         operatorsPrecedence.put("/", 6);
+        operatorsPrecedence.put(".", 6); // calling method is also operator
+
         operatorsPrecedence.put("(", 8);
     }
 
@@ -47,7 +50,13 @@ public class Parser {
     // in lexer transform SIGIL + IDENTIFIER => IDENTIFIER
     // in lexer transform (IDENTIFIER + !) or (IDENTIFIER + ?) => IDENTIFIER
     // remove (WHITESPACE && non-terminator) and COMMENT from TokenStream
-    // Problem: child do not added to nodes
+    // + Problem: child do not added to nodes
+    // + add unless structure
+    // if variable found, check if its value does not end with ? or '!'
+    // in function definition check if identifier does not start from SIGIL
+    // add operator of method call (make it operation with highest priority)
+
+
     public AbstractSyntaxTree parse(){
         AstNode root =
                 new AstNode(AstNode.Type.PROGRAM, null);
@@ -57,7 +66,7 @@ public class Parser {
             // here, currentToken is start of new expression
 
             AstNode expression = null;
-            if(tokenStream.isEnded()){
+            if(!tokenStream.isEnded()){
                 expression = parseExpressionRecursively(currentPrecedence());
             }
 
@@ -176,7 +185,10 @@ public class Parser {
         else if(t.getValue().equals("nil")){
             return new AstNode(AstNode.Type.NIL, t.getValue());
         }
-        else if(t.getType() == Token.Type.IDENTIFIER){
+        else if(t.getType() == Token.Type.IDENTIFIER){ // parse variable or variable binding
+            if(t.getValue().endsWith("?") || t.getValue().endsWith("!")){
+                ///////////////////////////////////////////////// NEED to report about incorrect ? ot ! at the end of token
+            }
             return parseIdentifier();
         }
         else if (t.getValue().equals("return")){
@@ -185,7 +197,7 @@ public class Parser {
         else if(t.getValue().equals("def")){
             return parseFunctionDefinition();
         }
-        else if(t.getValue().equals("if")){
+        else if(t.getValue().equals("if") || t.getValue().equals("unless")){
             return parseConditional();
         }
         else if(t.getValue().equals("while")){
@@ -260,7 +272,7 @@ public class Parser {
 
     // current token is 'if'
     private AstNode parseConditional(){
-        AstNode conditional = new AstNode(AstNode.Type.CONDITIONAL, null);
+        AstNode conditional = new AstNode(AstNode.Type.CONDITIONAL, tokenStream.getCurrentToken().getValue());
 
         tokenStream.consume();
 
@@ -306,8 +318,7 @@ public class Parser {
     private AstNode parseFunctionDefinition(){
         if(!tokenStream.isLastToken()){
             Token nextToken = tokenStream.lookahead(1);
-            if(nextToken.getType() == Token.Type.IDENTIFIER ||
-                    BINARY_OPERATORS.contains(nextToken.getValue())){
+            if(isValidFunctionName(nextToken)){
                 tokenStream.consume();
                 AstNode functionNode = new AstNode(AstNode.Type.FUNCTION_DEFINITION, nextToken.getValue());
                 tokenStream.consume();
@@ -345,6 +356,21 @@ public class Parser {
 
         /////////////////////////////////// NEED to report about unexpected end of file
         return new AstNode(AstNode.Type.FUNCTION_DEFINITION, null);
+    }
+
+    private Boolean isValidFunctionName(Token t){
+        if(t.getType() == Token.Type.IDENTIFIER){
+            for(String sigil : SIGILS){
+                if (t.getValue().startsWith(sigil)) {
+                    return false; // @abs can't be function name
+                }
+            }
+            return true;
+        }
+        else if (BINARY_OPERATORS.contains(t.getValue())){
+            return true;
+        }
+        return false;
     }
 
     /**

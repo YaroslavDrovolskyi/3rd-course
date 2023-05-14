@@ -14,7 +14,7 @@ public class AstVisualizer {
         String dotString = toGraphvizString(tree);
 
         MutableGraph g = new guru.nidi.graphviz.parse.Parser().read(dotString);
-        Graphviz.fromGraph(g).width(1400).render(Format.PNG).toFile(new File(filename));
+        Graphviz.fromGraph(g).width(14000).render(Format.PNG).toFile(new File(filename));
     }
 
     private String toGraphvizString(AbstractSyntaxTree tree){

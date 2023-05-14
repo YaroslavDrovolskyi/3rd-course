@@ -2,10 +2,8 @@ package ua.drovolskyi.compilers.lab1;
 
 import ua.drovolskyi.compilers.lab1.lexer.CharStreamStringImpl;
 import ua.drovolskyi.compilers.lab1.lexer.Lexer;
-import ua.drovolskyi.compilers.lab1.parser.AbstractSyntaxTree;
-import ua.drovolskyi.compilers.lab1.parser.AstVisualizer;
-import ua.drovolskyi.compilers.lab1.parser.Parser;
-import ua.drovolskyi.compilers.lab1.parser.TokenStreamListImpl;
+import ua.drovolskyi.compilers.lab1.lexer.LexerParserMediator;
+import ua.drovolskyi.compilers.lab1.parser.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,10 +15,15 @@ public class Main {
         String filename = "src/main/resources/2.rb";
         String code = new String(Files.readAllBytes(Paths.get(filename)));
 
+        // lexer
         Lexer lexer = new Lexer(new CharStreamStringImpl(code));
         List<Token> tokens = lexer.tokenize();
 
-        Parser parser = new Parser(new TokenStreamListImpl(tokens));
+        // mediator
+        TokenStream tokenStream = LexerParserMediator.prepareForParser(tokens);
+
+        // parser
+        Parser parser = new Parser(tokenStream);
         AbstractSyntaxTree ast = parser.parse();
 
         AstVisualizer visualizer = new AstVisualizer();
