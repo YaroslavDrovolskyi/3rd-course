@@ -41,6 +41,19 @@ public class AstNode {
         return this.childs;
     }
 
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("AstNode{").append(this.type);
+        if(this.value != null){
+            sb.append(", ").append(this.value);
+        }
+        sb.append("}");
+
+        return sb.toString();
+    }
+
     public enum Type {
         PROGRAM("PROGRAM"),
         VAR_BINDING("VAR_BINDING"),

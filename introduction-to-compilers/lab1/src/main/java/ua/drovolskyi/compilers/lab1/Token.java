@@ -17,8 +17,15 @@ public class Token {
         return value;
     }
 
-    public void setValue(String value){
-        this.value = value;
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("Token{");
+        sb.append(this.type).append(", ");
+        sb.append(this.value);
+        sb.append("}");
+
+        return sb.toString();
     }
 
     public static enum Type{

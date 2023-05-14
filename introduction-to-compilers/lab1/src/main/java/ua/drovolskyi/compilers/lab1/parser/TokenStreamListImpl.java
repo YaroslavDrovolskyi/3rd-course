@@ -63,4 +63,30 @@ public class TokenStreamListImpl implements TokenStream{
     public Integer availableTokens(){
         return tokens.size() - (currentIndex + 1);
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("TokenStream{");
+        if(this.currentIndex.equals(-1)){
+            sb.append("NOT STARTED");
+        }
+        if(isEnded()){
+            sb.append("ENDED");
+        }
+        else{
+            sb.append("current: ").append(getCurrentToken()).append(", ");
+            sb.append("next: ");
+            if(!isLastToken()){
+                sb.append(tokens.get(currentIndex + 1));
+            }
+            else{
+                sb.append("NO NEXT TOKEN");
+            }
+        }
+        sb.append("}");
+
+        return sb.toString();
+    }
 }

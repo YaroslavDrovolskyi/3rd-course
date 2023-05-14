@@ -9,13 +9,13 @@ import java.util.*;
 public class Parser {
     private static final List<String> UNARY_OPERATORS = Arrays.asList("-", "!");
     private static final List<String> BINARY_OPERATORS =
-            Arrays.asList("+", "-", "*", "/", "==", "!=", ">", "<", ">=", "<=");
+            Arrays.asList("+", "-", "*", "**", "/", "==", "!=", ">", "<", ">=", "<=", ".");
     private static final List<String> LOGICAL_OPERATORS =
             Arrays.asList("and", "or", "not", "&&", "||", "!");
     private static final List<String> SIGILS = Arrays.asList("$", "@@", "@");
 
     private final Integer LOWEST_PRECEDENCE = 0;
-    private final Integer MAX_PRECEDENCE = 7;
+    private final Integer MAX_PRECEDENCE = 9;
 
     // operators with bigger precedence should be executed first
     private final Map<String, Integer> operatorsPrecedence = new TreeMap<>(String::compareTo);
@@ -41,20 +41,23 @@ public class Parser {
         operatorsPrecedence.put("-", 5);
         operatorsPrecedence.put("*", 6);
         operatorsPrecedence.put("/", 6);
-        operatorsPrecedence.put(".", 6); // calling method is also operator
+        operatorsPrecedence.put("**", 7);
+        operatorsPrecedence.put(".", 8); // calling method is also operator
 
-        operatorsPrecedence.put("(", 8);
+        operatorsPrecedence.put("(", 10);
     }
 
     ////////////////////////////////////// Tasks
-    // in lexer transform SIGIL + IDENTIFIER => IDENTIFIER
-    // in lexer transform (IDENTIFIER + !) or (IDENTIFIER + ?) => IDENTIFIER
-    // remove (WHITESPACE && non-terminator) and COMMENT from TokenStream
+    // + in lexer transform SIGIL + IDENTIFIER => IDENTIFIER
+    // + in lexer transform (IDENTIFIER + !) or (IDENTIFIER + ?) => IDENTIFIER
+    // + remove (WHITESPACE && non-terminator) and COMMENT from TokenStream
     // + Problem: child do not added to nodes
     // + add unless structure
-    // if variable found, check if its value does not end with ? or '!'
-    // in function definition check if identifier does not start from SIGIL
-    // add operator of method call (make it operation with highest priority)
+    // + if variable found, check if its value does not end with ? or '!'
+    // + in function definition check if identifier does not start from SIGIL
+    // + add operator of method call (make it operation with highest priority)
+    // add FUNCTION_BODY
+    // + add value for UNARY_OPERTAOR
 
 
     public AbstractSyntaxTree parse(){
@@ -67,7 +70,7 @@ public class Parser {
 
             AstNode expression = null;
             if(!tokenStream.isEnded()){
-                expression = parseExpressionRecursively(currentPrecedence());
+                expression = parseExpressionRecursively(LOWEST_PRECEDENCE);
             }
 
             if(expression != null){
@@ -145,11 +148,11 @@ public class Parser {
         }
 
         // function has arguments
-        args.add(parseExpressionRecursively(currentPrecedence()));
+        args.add(parseExpressionRecursively(LOWEST_PRECEDENCE));
         while(tokenStream.availableTokens() >= 2
                 && tokenStream.lookahead(1).getValue().equals(",")){
             tokenStream.consumeTokens(2);
-            args.add(parseExpressionRecursively(currentPrecedence()));
+            args.add(parseExpressionRecursively(LOWEST_PRECEDENCE));
         }
 
         if(reportIfUnexpectedEnd()){
@@ -220,7 +223,7 @@ public class Parser {
      */
     private AstNode parseGroupedExpression(){
         tokenStream.consume();
-        AstNode expr = parseExpressionRecursively(currentPrecedence());
+        AstNode expr = parseExpressionRecursively(LOWEST_PRECEDENCE);
 
         if(!tokenStream.isEnded() &&
                 tokenStream.lookahead(1).getValue().equals(")")){
@@ -236,7 +239,7 @@ public class Parser {
      * @return
      */
     private AstNode parseUnaryOperator(){
-        AstNode node = new AstNode(AstNode.Type.UNARY_OPERATOR, null);
+        AstNode node = new AstNode(AstNode.Type.UNARY_OPERATOR, tokenStream.getCurrentToken().getValue());
         tokenStream.consume();
         node.addChild(parseExpressionRecursively(MAX_PRECEDENCE));
 
@@ -251,7 +254,7 @@ public class Parser {
 
         // condition of repetition
         AstNode condition = new AstNode(AstNode.Type.CONDITION, null);
-        condition.addChild(parseExpressionRecursively(currentPrecedence()));
+        condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
         repetitionNode.addChild(condition);
 
         if(!reportIfUnexpectedEnd()){
@@ -277,7 +280,7 @@ public class Parser {
         tokenStream.consume();
 
         AstNode condition = new AstNode(AstNode.Type.CONDITION, null);
-        condition.addChild(parseExpressionRecursively(currentPrecedence()));
+        condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
         conditional.addChild(condition);
 
         if(!tokenStream.isLastToken()){
@@ -385,7 +388,7 @@ public class Parser {
         while(!tokenStream.isEnded() &&
                 !tokenStream.getCurrentToken().getValue().equals("end") &&
                 !tokenStream.getCurrentToken().getValue().equals("else")){
-            AstNode expr = parseExpressionRecursively(currentPrecedence());
+            AstNode expr = parseExpressionRecursively(LOWEST_PRECEDENCE);
             if(expr != null){
                 block.addChild(expr);
             }
@@ -462,7 +465,7 @@ public class Parser {
 
         AstNode arg = null;
         if(!reportIfUnexpectedEnd()){
-            arg = parseExpressionRecursively(currentPrecedence());
+            arg = parseExpressionRecursively(LOWEST_PRECEDENCE);
         }
 
         return new AstNode(AstNode.Type.RETURN, null, Arrays.asList(arg));
@@ -503,7 +506,7 @@ public class Parser {
         tokenStream.consumeTokens(2);
 
         if(!reportIfUnexpectedEnd()){
-            rightSide = parseExpressionRecursively(currentPrecedence());
+            rightSide = parseExpressionRecursively(LOWEST_PRECEDENCE);
         }
 
         return new AstNode(AstNode.Type.VAR_BINDING, null,
