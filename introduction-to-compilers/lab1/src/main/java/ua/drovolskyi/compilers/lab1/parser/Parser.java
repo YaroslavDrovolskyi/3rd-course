@@ -6,19 +6,87 @@ import ua.drovolskyi.compilers.lab1.Token;
 
 import java.util.*;
 
+import static java.util.Map.entry;
+
 public class Parser {
-    private static final List<String> UNARY_OPERATORS = Arrays.asList("-", "!");
-    private static final List<String> BINARY_OPERATORS =
-            Arrays.asList("+", "-", "*", "**", "/", "==", "!=", ">", "<", ">=", "<=", ".");
+    private static final List<String> UNARY_OPERATORS = Arrays.asList("-", "!", "~", "+");
+    private static final List<String> BINARY_OPERATORS = // describe math and logical operators
+            Arrays.asList("+", "-", "*", "**", "/", "%", "==", "!=", "^", "%=", "/=", "-=", "+=", "*=",
+                    ">", "<", ">=", "<=", ".", "===", "<=>", "**=", "...", "..,",
+                    "<<", ">>", "=~", "!~", "?", ":", "defined?",
+                    "and", "or", "not", "&&", "||", "|");
     private static final List<String> LOGICAL_OPERATORS =
-            Arrays.asList("and", "or", "not", "&&", "||", "!");
+            Arrays.asList();
     private static final List<String> SIGILS = Arrays.asList("$", "@@", "@");
 
     private final Integer LOWEST_PRECEDENCE = 0;
-    private final Integer MAX_PRECEDENCE = 9;
+    private final Integer MAX_PRECEDENCE = 19;
 
     // operators with bigger precedence should be executed first
-    private final Map<String, Integer> operatorsPrecedence = new TreeMap<>(String::compareTo);
+    private final Map<String, Integer> operatorsPrecedence = Map.ofEntries(
+            entry("(", 20),
+
+            entry(".", 18), // calling method is also operator
+
+            entry("!", 17),
+            entry("~", 17),
+
+            entry("**", 16),
+
+            entry("*", 15),
+            entry("/", 15),
+            entry("%", 15),
+
+            entry("+", 14),
+            entry("-", 14),
+
+            entry("<<", 13),
+            entry(">>", 13),
+
+            entry("&", 12),
+
+            entry("|", 11),
+            entry("^", 11),
+
+            entry(">", 10),
+            entry(">=", 10),
+            entry("<", 10),
+            entry("<=", 10),
+
+            entry("<=>", 9),
+            entry("==", 9),
+            entry("===", 9),
+            entry("!=", 9),
+            entry("=~", 9),
+            entry("!~", 9),
+
+            entry("&&", 8),
+
+            entry("||", 7),
+
+            entry("..,", 6),
+            entry("...", 6),
+
+            entry("?", 5),
+            entry(":", 5),
+
+            entry("%=", 4),
+            entry("/=", 4),
+            entry("-=", 4),
+            entry("+=", 4),
+            entry("*=", 4),
+            entry("**=", 4),
+
+            entry("defined?", 3),
+
+            entry("not", 2),
+
+            entry("or", 1),
+            entry("and", 1)
+    );
+
+        //new TreeMap<>(String::compareTo);
+
 
 
 
@@ -28,6 +96,7 @@ public class Parser {
     public Parser(TokenStream tokenStream){
         this.tokenStream = tokenStream;
 
+        /*
         // init operators precedences
         operatorsPrecedence.put("or", 1);
         operatorsPrecedence.put("and", 2);
@@ -45,6 +114,7 @@ public class Parser {
         operatorsPrecedence.put(".", 8); // calling method is also operator
 
         operatorsPrecedence.put("(", 10);
+         */
     }
 
     ////////////////////////////////////// Tasks
@@ -203,7 +273,7 @@ public class Parser {
         else if(t.getValue().equals("if") || t.getValue().equals("unless")){
             return parseConditional();
         }
-        else if(t.getValue().equals("while")){
+        else if(t.getValue().equals("while") || t.getValue().equals("until")){
             return parseRepetition();
         }
         else if(t.getValue().equals("(")){
@@ -247,9 +317,11 @@ public class Parser {
     }
 
 
-    // current token is 'while'
+    /**
+     * current token is 'while' or 'until'
+     */
     private AstNode parseRepetition(){
-        AstNode repetitionNode = new AstNode(AstNode.Type.REPETITION, null);
+        AstNode repetitionNode = new AstNode(AstNode.Type.REPETITION, tokenStream.getCurrentToken().getValue());
         tokenStream.consume();
 
         // condition of repetition
@@ -265,52 +337,86 @@ public class Parser {
         }
 
         // block (repetition's body)
-        AstNode block = new AstNode(AstNode.Type.BLOCK, null);
-        block.addChild(parseBlock());
-        repetitionNode.addChild(block);
+//        AstNode block = new AstNode(AstNode.Type.BLOCK, null);
+//       block.addChild();
+        repetitionNode.addChild(parseBlock());
+
+        if(tokenStream.isEnded()){
+            /////////////////////////////////// NEED to report about unexpected end od file
+        }
+        else if(!tokenStream.getCurrentToken().getValue().equals("end")){
+            //////////////////////////////////// NEED to report about unexpected token ('end expected')
+        }
 
         return repetitionNode;
     }
 
 
-    // current token is 'if'
+    /**
+     * current token is 'if'
+     */
     private AstNode parseConditional(){
-        AstNode conditional = new AstNode(AstNode.Type.CONDITIONAL, tokenStream.getCurrentToken().getValue());
+        AstNode conditional = new AstNode(AstNode.Type.CONDITIONAL, null);
 
+        AstNode condition = new AstNode(AstNode.Type.CONDITION, "if");
         tokenStream.consume();
 
-        AstNode condition = new AstNode(AstNode.Type.CONDITION, null);
+        // add condition itself for 'if' statement as its left child
         condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
-        conditional.addChild(condition);
 
+        // add execution block for 'if' statement as its right child
         if(!tokenStream.isLastToken()){
             if(isTerminator(tokenStream.lookahead(1))){
-                AstNode block = new AstNode(AstNode.Type.BLOCK, null);
-                block.addChild(parseBlock());
-                conditional.addChild(block);
-                // current token is last token of parsed block
+                condition.addChild(parseBlock());
+            }
+        }
+        conditional.addChild(condition);
 
-                if(tokenStream.getCurrentToken().getValue().equals("else")){
-                    AstNode elseBlock = new AstNode(AstNode.Type.BLOCK, null);
-                    elseBlock.addChild(parseBlock());
-                    conditional.addChild(elseBlock);
+        // here current token is 'end' or 'else' or 'elif'
+
+        while(!tokenStream.isEnded() && tokenStream.getCurrentToken().getValue().equals("elsif")){
+            condition = new AstNode(AstNode.Type.CONDITION, "elsif");
+            tokenStream.consume();
+
+            // add condition itself for 'elsif' statement as its left child
+            condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
+
+            // add execution block for 'elsif' statement as its right child
+            if(!tokenStream.isLastToken()){
+                if(isTerminator(tokenStream.lookahead(1))){
+                    condition.addChild(parseBlock());
                 }
-
-                // else unexpected toke is already reported
-                return conditional;
+                else{
+                    ////////////////////////////////////// NEED to report about unexpected token
+                }
             }
             else{
-                /////////////////////////// NEED to report about unexpected token
-                return null;
+                /////////////////////////////////////////// NEED to report about unexpected end of file
             }
 
-        }
-        else{
-            ////////////////////////////////// NEED report about unexpected end of file
-            return null;
+            conditional.addChild(condition);
         }
 
+        if(!tokenStream.isEnded() && tokenStream.getCurrentToken().getValue().equals("else")){
+            condition = new AstNode(AstNode.Type.CONDITION, "else");
 
+            // add execution block for 'else' statement as its only child
+            if(!tokenStream.isLastToken()){
+                if(isTerminator(tokenStream.lookahead(1))){
+                    condition.addChild(parseBlock());
+                }
+                else{
+                    ////////////////////////////////////// NEED to report about unexpected token
+                }
+            }
+            else{
+                /////////////////////////////////////////// NEED to report about unexpected end of file
+            }
+
+            conditional.addChild(condition);
+        }
+
+        return conditional;
     }
 
 
@@ -347,7 +453,7 @@ public class Parser {
                         return functionNode;
                     }
                     else{
-                        ///////////////////////////////////////// NEED report about unexpected token
+                        ///////////////////////////////////////// NEED report about unexpected token ('(' expected)
                         return functionNode;
                     }
                 }
@@ -387,7 +493,8 @@ public class Parser {
 
         while(!tokenStream.isEnded() &&
                 !tokenStream.getCurrentToken().getValue().equals("end") &&
-                !tokenStream.getCurrentToken().getValue().equals("else")){
+                !tokenStream.getCurrentToken().getValue().equals("else") &&
+                !tokenStream.getCurrentToken().getValue().equals("elsif")){
             AstNode expr = parseExpressionRecursively(LOWEST_PRECEDENCE);
             if(expr != null){
                 block.addChild(expr);
@@ -398,7 +505,7 @@ public class Parser {
         if(tokenStream.isEnded()){
             //////////////////////////// NEED to report about unexpected end of file
         }
-        // else we reached 'end'
+        // else we reached 'end' or 'else' or 'elsif'
 
         return block;
     }
