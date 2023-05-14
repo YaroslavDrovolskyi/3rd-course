@@ -95,26 +95,6 @@ public class Parser {
 
     public Parser(TokenStream tokenStream){
         this.tokenStream = tokenStream;
-
-        /*
-        // init operators precedences
-        operatorsPrecedence.put("or", 1);
-        operatorsPrecedence.put("and", 2);
-        operatorsPrecedence.put("==", 3);
-        operatorsPrecedence.put("!=", 3);
-        operatorsPrecedence.put(">", 4);
-        operatorsPrecedence.put("<", 4);
-        operatorsPrecedence.put(">=", 4);
-        operatorsPrecedence.put("<=", 4);
-        operatorsPrecedence.put("+", 5);
-        operatorsPrecedence.put("-", 5);
-        operatorsPrecedence.put("*", 6);
-        operatorsPrecedence.put("/", 6);
-        operatorsPrecedence.put("**", 7);
-        operatorsPrecedence.put(".", 8); // calling method is also operator
-
-        operatorsPrecedence.put("(", 10);
-         */
     }
 
     ////////////////////////////////////// Tasks
@@ -179,8 +159,10 @@ public class Parser {
         return expr;
     }
 
-    // it is called if leftChild.priority < currentToken.priority
-    // current token is some binary math or binary logic operation
+    /**
+     * it is called if leftChild.priority < currentToken.priority
+     * current token is some binary math or binary logic operation
+     */
     private AstNode parseBinaryOperator(AstNode leftChild){
         AstNode operation = new AstNode(AstNode.Type.BINARY_OPERATOR,
                 tokenStream.getCurrentToken().getValue(), Arrays.asList(leftChild));
@@ -191,18 +173,22 @@ public class Parser {
             operation.addChild(parseExpressionRecursively(operationPrecedence));
         }
         else{
-            ///////////////////////////////////// here NEED to report about unexpected file end
+            reportUnexpectedEndOfFile("right operand");
         }
 
         return operation;
     }
 
-    // current token is '('
+    /**
+     * current token is '('
+     */
     private AstNode parseFunctionCall(String identifier){
         return new AstNode(AstNode.Type.FUNCTION_CALL, identifier, parseFunctionCallArgs());
     }
 
-    // current token is '('
+    /**
+     * current token is '('
+     */
     private List<AstNode> parseFunctionCallArgs(){
         List<AstNode> args = new ArrayList<>();
 
@@ -229,13 +215,13 @@ public class Parser {
             return args;
         }
 
-        // found matching )
+        // found matching ')'
         if(tokenStream.lookahead(1).getValue().equals(")")){
             tokenStream.consume();
             return args;
         }
 
-        /////////////////////////////////////// here NEED report about unexpected token error
+        reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "')'");
         return args;
     }
 
@@ -286,7 +272,7 @@ public class Parser {
             return parseUnaryOperator();
         }
 
-        /////////////////////////////////////////// here NEED report about unrecognized token error
+        reportUnexpectedToken(t.getValue());
         return null;
     }
 
@@ -338,17 +324,13 @@ public class Parser {
         else{
             return null;
         }
-
-        // block (repetition's body)
-//        AstNode block = new AstNode(AstNode.Type.BLOCK, null);
-//       block.addChild();
         repetitionNode.addChild(parseBlock());
 
         if(tokenStream.isEnded()){
-            /////////////////////////////////// NEED to report about unexpected end od file
+            reportUnexpectedEndOfFile("'end'");
         }
         else if(!tokenStream.getCurrentToken().getValue().equals("end")){
-            //////////////////////////////////// NEED to report about unexpected token ('end expected')
+            reportUnexpectedToken(tokenStream.getCurrentToken().getValue(), "'end'");
         }
 
         return repetitionNode;
@@ -357,6 +339,7 @@ public class Parser {
     /**
      * current token is 'class' <br/>
      * Class is sequence of methods
+     * After work current token is 'end' of class
      */
     private AstNode parseClassDefinition(){
         if(!tokenStream.isLastToken()){
@@ -369,10 +352,15 @@ public class Parser {
                         !lexeme.startsWith("$") && !lexeme.startsWith("@") && !lexeme.startsWith("@@")){
                     AstNode classNode = new AstNode(AstNode.Type.CLASS_DEFINITION, lexeme);
 
-                    if(tokenStream.isLastToken() || !isTerminator(tokenStream.lookahead(1))){
-                        //////////////////////////////// NEED report about unexpected token (terminator expected)
+                    if(tokenStream.isLastToken()){
+                        reportUnexpectedEndOfFile("new line");
                         return classNode;
                     }
+                    else if(!isTerminator(tokenStream.lookahead(1))){
+                        reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "new line");
+                        return classNode;
+                    }
+
                     tokenStream.consume();
 
                     while(!tokenStream.isLastToken() && tokenStream.lookahead(1).getValue().equals("def")){
@@ -386,27 +374,26 @@ public class Parser {
                     }
 
                     if(tokenStream.isLastToken()){
-                        /////////////////////////////////// NEED to report about unexpected end of file (class 'end' expected)
+                        reportUnexpectedEndOfFile("'end'");
                     }
                     else if(tokenStream.lookahead(1).getValue().equals("end")){
                         tokenStream.consume();
-
                     }
                     else{
-                        ////////////////////////////////// NEED to report about unexpected token (class 'end' expected)
+                        reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "'end'");
                     }
                     return classNode;
                 }
                 else{
-                    //////////////////////////////////// NEED to report that identifier (class name) expected
+                    reportUnexpectedToken(lexeme, "valid class name");
                 }
             }
             else{
-                ///////////////////////////////// NEED to report about unexpected token (identifier expected)
+                reportUnexpectedToken(currentToken.getValue(), "identifier");
             }
         }
         else{
-            ////////////////////////////////////// NEED to report about unexpected end of file
+            reportUnexpectedEndOfFile("class name");
         }
 
         return null;
@@ -448,11 +435,11 @@ public class Parser {
                     condition.addChild(parseBlock());
                 }
                 else{
-                    ////////////////////////////////////// NEED to report about unexpected token
+                    reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "new line");
                 }
             }
             else{
-                /////////////////////////////////////////// NEED to report about unexpected end of file
+                reportUnexpectedEndOfFile("new line");
             }
 
             conditional.addChild(condition);
@@ -467,11 +454,11 @@ public class Parser {
                     condition.addChild(parseBlock());
                 }
                 else{
-                    ////////////////////////////////////// NEED to report about unexpected token
+                    reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "new line");
                 }
             }
             else{
-                /////////////////////////////////////////// NEED to report about unexpected end of file
+                reportUnexpectedEndOfFile("new line");
             }
 
             conditional.addChild(condition);
@@ -483,6 +470,7 @@ public class Parser {
 
     /**
      * Current token is 'def'
+     * Current token after work is 'end' of parsed function
      * @return
      */
     private AstNode parseFunctionDefinition(){
@@ -500,11 +488,11 @@ public class Parser {
                         // here current token is ')' or ',' or out of bounds of tokenStream
                         tokenStream.consume();
                         if(tokenStream.isEnded()){
-                            ////////////////////////////////// NEED report about unexpected end of file
+                            reportUnexpectedEndOfFile("new line");
                             return functionNode;
                         }
                         if(!isTerminator(tokenStream.getCurrentToken())){
-                            ///////////////////////////////// NEED report about unexpected token
+                            reportUnexpectedToken(tokenStream.getCurrentToken().getValue(), "new line");
                             return functionNode;
                         }
 
@@ -514,7 +502,7 @@ public class Parser {
                         return functionNode;
                     }
                     else{
-                        ///////////////////////////////////////// NEED report about unexpected token ('(' expected)
+                        reportUnexpectedToken(tokenStream.getCurrentToken().getValue(), "'('");
                         return functionNode;
                     }
                 }
@@ -522,9 +510,12 @@ public class Parser {
                     return functionNode;
                 }
             }
+            else{
+                reportUnexpectedToken(nextToken.getValue(), "valid function name");
+            }
         }
 
-        /////////////////////////////////// NEED to report about unexpected end of file
+        reportUnexpectedEndOfFile("function name");
         return new AstNode(AstNode.Type.FUNCTION_DEFINITION, null);
     }
 
@@ -564,7 +555,7 @@ public class Parser {
         }
 
         if(tokenStream.isEnded()){
-            //////////////////////////// NEED to report about unexpected end of file
+            reportUnexpectedEndOfFile("'end' or 'else' or 'elif'");
         }
         // else we reached 'end' or 'else' or 'elsif'
 
@@ -602,7 +593,7 @@ public class Parser {
                     params.addChild(new AstNode(AstNode.Type.IDENTIFIER, tokenStream.getCurrentToken().getValue()));
                 }
                 else {
-                    /////////////////////////// NEED to report about unexpected token
+                    reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "identifier");
                     return params;
                 }
 
@@ -611,7 +602,7 @@ public class Parser {
                 }
             }
             else{
-                /////////////////////////// NEED to report about unexpected end of file
+                reportUnexpectedEndOfFile("identifier");
                 return params;
             }
         }
@@ -620,7 +611,7 @@ public class Parser {
         reportIfUnexpectedEnd();
 
         if(!tokenStream.getCurrentToken().getValue().equals(")")){
-            /////////////////////////////////////// need to report about unexpected end of file
+            reportUnexpectedEndOfFile("')'");
         }
         return params;
     }
@@ -661,7 +652,7 @@ public class Parser {
                 return identifierNode;
             }
 
-            //////////////////////////////////////////////// here NEED to report about unexpected token
+//            reportUnexpectedToken(nextToken.getValue(), "'=' or ';', or binary operator, or new line");
         }
         return identifierNode;
     }
@@ -689,12 +680,12 @@ public class Parser {
     private Boolean reportIfUnexpectedEnd(){
         if(!tokenStream.isEnded()){
             if(isTerminator(tokenStream.getCurrentToken())){
-                //////////////////////////////// here NEED to report about unexpected end of statement
+                reportUnexpectedToken("terminator token");
                 return true;
             }
         }
         else{
-            /////////////////////////////////// here NEED to report about unexpected end of file
+            reportUnexpectedEndOfFile();
             return true;
         }
         return false;
@@ -731,5 +722,25 @@ public class Parser {
             return operatorsPrecedence.get(t.getValue());
         }
         return LOWEST_PRECEDENCE;
+    }
+
+    private void reportUnexpectedEndOfFile(String expectedLexeme){
+        System.out.println("Line " + tokenStream.currentLine() + ": " +
+                expectedLexeme + " expected, but EOF found");
+    }
+
+    private void reportUnexpectedEndOfFile(){
+        System.out.println("Line " + tokenStream.currentLine() + ": " +
+                "unexpected EOF found");
+    }
+
+    private void reportUnexpectedToken(String unexpectedLexeme, String expectedLexeme){
+        System.out.println("Line " + tokenStream.currentLine() + ": " +
+                expectedLexeme + " expected, but " + unexpectedLexeme + "found");
+    }
+
+    private void reportUnexpectedToken(String unexpectedLexeme){
+        System.out.println("Line " + tokenStream.currentLine() + ": " +
+                " unexpected token " + unexpectedLexeme);
     }
 }

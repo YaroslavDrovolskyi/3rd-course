@@ -14,4 +14,10 @@ public interface TokenStream {
     Boolean isEnded();
     Token lookahead(Integer offset);
     Integer availableTokens();
+
+    /**
+     * Returns number of line where current token is located
+     * @return
+     */
+    Integer currentLine();
 }

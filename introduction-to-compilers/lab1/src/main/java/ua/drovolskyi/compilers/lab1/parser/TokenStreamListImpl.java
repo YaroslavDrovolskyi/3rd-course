@@ -7,6 +7,7 @@ import java.util.List;
 public class TokenStreamListImpl implements TokenStream{
     private final List<Token> tokens;
     private Integer currentIndex;
+    private Integer currentLine = 1;
 
     public TokenStreamListImpl(List<Token> tokens) {
         this.tokens = tokens;
@@ -15,22 +16,42 @@ public class TokenStreamListImpl implements TokenStream{
 
     @Override
     public void consume(){
+        if(currentIndex > -1){
+            if(tokens.get(currentIndex).getValue().equals("\n")){
+                currentLine++;
+            }
+        }
         currentIndex++;
     }
 
     @Override
     public void consumeTokens(Integer count){
-        currentIndex += count;
+        for(int i = 0; i < count; i++){
+            consume();
+        }
     }
 
     @Override
     public void returnToken(){
+        if(currentIndex < tokens.size()){
+            if(tokens.get(currentIndex).getValue().equals("\n")){
+                currentLine--;
+            }
+        }
+
         currentIndex--;
     }
 
     @Override
+    public Integer currentLine(){
+        return currentLine;
+    }
+
+    @Override
     public void returnTokens(Integer count){
-        currentIndex -= count;
+        for(int i = 0; i < count; i++){
+            returnToken();
+        }
     }
 
     @Override
