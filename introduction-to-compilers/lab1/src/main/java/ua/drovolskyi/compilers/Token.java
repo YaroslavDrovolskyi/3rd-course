@@ -1,4 +1,4 @@
-package ua.drovolskyi.compilers.lab1;
+package ua.drovolskyi.compilers;
 
 public class Token {
     private final Type type;

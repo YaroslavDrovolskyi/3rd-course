@@ -1,4 +1,4 @@
-package ua.drovolskyi.compilers.lab1.parser;
+package ua.drovolskyi.compilers.lab2.parser;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,8 +1,8 @@
 package ua.drovolskyi.compilers.lab1.lexer;
 
-import ua.drovolskyi.compilers.lab1.Token;
-import ua.drovolskyi.compilers.lab1.parser.TokenStream;
-import ua.drovolskyi.compilers.lab1.parser.TokenStreamListImpl;
+import ua.drovolskyi.compilers.Token;
+import ua.drovolskyi.compilers.lab2.parser.TokenStream;
+import ua.drovolskyi.compilers.lab2.parser.TokenStreamListImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;

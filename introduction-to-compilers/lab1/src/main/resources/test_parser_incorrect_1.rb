@@ -1,4 +1,4 @@
-#a =
+a =
 #return
 
 #class A?

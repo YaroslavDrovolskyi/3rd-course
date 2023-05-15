@@ -1,9 +1,12 @@
-package ua.drovolskyi.compilers.lab1;
+package ua.drovolskyi.compilers;
 
 import ua.drovolskyi.compilers.lab1.lexer.CharStreamStringImpl;
 import ua.drovolskyi.compilers.lab1.lexer.Lexer;
 import ua.drovolskyi.compilers.lab1.lexer.LexerParserMediator;
-import ua.drovolskyi.compilers.lab1.parser.*;
+import ua.drovolskyi.compilers.lab2.parser.AbstractSyntaxTree;
+import ua.drovolskyi.compilers.lab2.parser.AstVisualizer;
+import ua.drovolskyi.compilers.lab2.parser.Parser;
+import ua.drovolskyi.compilers.lab2.parser.TokenStream;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +19,7 @@ public class Main {
         String correctFilename = "test_parser_correct";
         String incorrectFilename = "test_parser_incorrect_1";
 
-        tokenizeAndParse(path, incorrectFilename, "rb");
+        tokenizeAndParse(path, correctFilename, "rb");
     }
 
     public static void tokenizeAndParse(String path, String filename, String fileExtension) throws IOException {

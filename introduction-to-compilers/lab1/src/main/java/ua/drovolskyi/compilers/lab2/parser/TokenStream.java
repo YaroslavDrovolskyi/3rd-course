@@ -1,6 +1,6 @@
-package ua.drovolskyi.compilers.lab1.parser;
+package ua.drovolskyi.compilers.lab2.parser;
 
-import ua.drovolskyi.compilers.lab1.Token;
+import ua.drovolskyi.compilers.Token;
 
 // before first call of .consume() current index is -1 and calling get-methods would be invalid
 public interface TokenStream {

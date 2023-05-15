@@ -1,6 +1,6 @@
-package ua.drovolskyi.compilers.lab1.parser;
+package ua.drovolskyi.compilers.lab2.parser;
 
-import ua.drovolskyi.compilers.lab1.Token;
+import ua.drovolskyi.compilers.Token;
 
 import java.util.List;
 
