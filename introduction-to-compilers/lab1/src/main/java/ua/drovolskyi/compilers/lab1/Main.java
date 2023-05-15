@@ -12,7 +12,9 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String filename = "src/main/resources/2.rb";
+        String correct = "src/main/resources/test_parser_correct.rb";
+        String incorrect = "src/main/resources/test_parser_incorrect_1.rb";
+        String filename = incorrect;
         String code = new String(Files.readAllBytes(Paths.get(filename)));
 
         // lexer
@@ -27,7 +29,7 @@ public class Main {
         AbstractSyntaxTree ast = parser.parse();
 
         AstVisualizer visualizer = new AstVisualizer();
-        visualizer.visualize(ast, "ast1.png");
+        visualizer.visualize(ast, "src/main/resources/test_parser_incorrect_1.png");
 
 //        System.out.println("Tokens:");
 //        printTokensList(tokens);

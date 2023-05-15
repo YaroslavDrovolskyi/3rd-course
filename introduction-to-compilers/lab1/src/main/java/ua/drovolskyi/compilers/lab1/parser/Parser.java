@@ -160,8 +160,10 @@ public class Parser {
     }
 
     /**
-     * it is called if leftChild.priority < currentToken.priority
-     * current token is some binary math or binary logic operation
+     * It is called if prevExpression.priority < currentToken.priority.
+     * prevExpression will be parent of currentToken. <br/>
+     * Current token is some binary math or binary logic operation <br/>
+     * Parse binary operation up to end of line
      */
     private AstNode parseBinaryOperator(AstNode leftChild){
         AstNode operation = new AstNode(AstNode.Type.BINARY_OPERATOR,
@@ -180,14 +182,15 @@ public class Parser {
     }
 
     /**
-     * current token is '('
+     * Current token is '('
      */
     private AstNode parseFunctionCall(String identifier){
         return new AstNode(AstNode.Type.FUNCTION_CALL, identifier, parseFunctionCallArgs());
     }
 
     /**
-     * current token is '('
+     * Current token is '(' <br/>
+     * Current token after execution is ')'
      */
     private List<AstNode> parseFunctionCallArgs(){
         List<AstNode> args = new ArrayList<>();
@@ -246,7 +249,7 @@ public class Parser {
         }
         else if(t.getType() == Token.Type.IDENTIFIER){ // parse variable or variable binding
             if(t.getValue().endsWith("?") || t.getValue().endsWith("!")){
-                ///////////////////////////////////////////////// NEED to report about incorrect ? ot ! at the end of token
+                reportError("Variable name can't end with '?' or '!'");
             }
             return parseIdentifier();
         }
@@ -277,7 +280,8 @@ public class Parser {
     }
 
     /**
-     * Current token is '('
+     * Current token is '(' <br/>
+     * Current token after execution is ')'
      * @return
      */
     private AstNode parseGroupedExpression(){
@@ -401,7 +405,8 @@ public class Parser {
 
 
     /**
-     * current token is 'if'
+     * Current token is 'if' <br/>
+     * Current token after execution is 'end' of parsed conditional
      */
     private AstNode parseConditional(){
         AstNode conditional = new AstNode(AstNode.Type.CONDITIONAL, null);
@@ -469,8 +474,8 @@ public class Parser {
 
 
     /**
-     * Current token is 'def'
-     * Current token after work is 'end' of parsed function
+     * Current token is 'def' <br/>
+     * Current token after execution is 'end' of parsed function
      * @return
      */
     private AstNode parseFunctionDefinition(){
@@ -519,6 +524,12 @@ public class Parser {
         return new AstNode(AstNode.Type.FUNCTION_DEFINITION, null);
     }
 
+    /**
+     * Check if t.getValue() is valid function name.
+     * Valid function name is binary operator, or identifier that does not start with sigil
+     * @param t is function name
+     * @return
+     */
     private Boolean isValidFunctionName(Token t){
         if(t.getType() == Token.Type.IDENTIFIER){
             for(String sigil : SIGILS){
@@ -536,7 +547,8 @@ public class Parser {
 
     /**
      * Parse block of code that must end with 'end' <br/>
-     * Current symbol is token that is previous to first token of block
+     * Current token is token that is previous to first token of block <br/>
+     * Current token after execution is 'end' or 'elsif' or 'else'
      * @return
      */
     private AstNode parseBlock(){
@@ -563,7 +575,8 @@ public class Parser {
     }
 
     /**
-     * Current token is '('
+     * Current token is '(' <br/>
+     * Current token after execution is ')'
      * @return
      */
     private AstNode parseFunctionParams(){
@@ -617,7 +630,7 @@ public class Parser {
     }
 
     /**
-     * Current token is 'return'
+     * Current token is 'return'. Parse expression up to line end
      */
     private AstNode parseReturn(){
         tokenStream.consume();
@@ -631,7 +644,9 @@ public class Parser {
     }
 
 
-    // current token is identifier
+    /**
+     * Current token is identifier
+     */
     private AstNode parseIdentifier(){
         AstNode identifierNode = new AstNode(AstNode.Type.IDENTIFIER, tokenStream.getCurrentToken().getValue());
 
@@ -651,13 +666,13 @@ public class Parser {
                 // return because operation expression will be parsed above in parseExpressionRecursively()
                 return identifierNode;
             }
-
-//            reportUnexpectedToken(nextToken.getValue(), "'=' or ';', or binary operator, or new line");
         }
         return identifierNode;
     }
 
-    // current token is identifier, next token is =
+    /**
+     * Current token is identifier, next token is '='
+     */
     private AstNode parseVarBinding(){
         AstNode identifier = new AstNode(AstNode.Type.IDENTIFIER, tokenStream.getCurrentToken().getValue());
         AstNode rightSide = null;
@@ -742,5 +757,9 @@ public class Parser {
     private void reportUnexpectedToken(String unexpectedLexeme){
         System.out.println("Line " + tokenStream.currentLine() + ": " +
                 " unexpected token " + unexpectedLexeme);
+    }
+
+    private void reportError(String err){
+        System.out.println("Line " + tokenStream.currentLine() + ": " + err);
     }
 }

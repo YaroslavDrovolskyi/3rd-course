@@ -40,10 +40,14 @@ public class AstVisualizer {
         // put information about node
         sb.append(nodeId);
         sb.append("[label=\"");
-        sb.append(nodeId).append("\n");
+//        sb.append(nodeId).append("\n");
         sb.append(node.getType()).append("\n");
         if(node.getValue() != null){
-            sb.append(node.getValue()).append("\n");
+            String value = node.getValue();
+            if(node.getType() == AstNode.Type.LITERAL_STRING){
+                value = value.substring(1, value.length() - 1); // remove " at start and at end
+            }
+            sb.append(value).append("\n");
         }
         sb.append("\"]\n");
 
