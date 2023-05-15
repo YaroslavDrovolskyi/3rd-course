@@ -12,10 +12,15 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String correct = "src/main/resources/test_parser_correct.rb";
-        String incorrect = "src/main/resources/test_parser_incorrect_1.rb";
-        String filename = incorrect;
-        String code = new String(Files.readAllBytes(Paths.get(filename)));
+        String path = "src/main/resources/";
+        String correctFilename = "test_parser_correct";
+        String incorrectFilename = "test_parser_incorrect_1";
+
+        tokenizeAndParse(path, incorrectFilename, "rb");
+    }
+
+    public static void tokenizeAndParse(String path, String filename, String fileExtension) throws IOException {
+        String code = new String(Files.readAllBytes(Paths.get(path + filename + "." + fileExtension)));
 
         // lexer
         Lexer lexer = new Lexer(new CharStreamStringImpl(code));
@@ -29,11 +34,7 @@ public class Main {
         AbstractSyntaxTree ast = parser.parse();
 
         AstVisualizer visualizer = new AstVisualizer();
-        visualizer.visualize(ast, "src/main/resources/test_parser_incorrect_1.png");
-
-//        System.out.println("Tokens:");
-//        printTokensList(tokens);
-//        printTokensListWithoutWhitespaces(tokens);
+        visualizer.visualize(ast, path + filename + ".png");
     }
 
 

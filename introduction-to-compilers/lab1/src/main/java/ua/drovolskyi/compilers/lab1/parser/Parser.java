@@ -138,7 +138,7 @@ public class Parser {
             return null;
         }
 
-        while(!tokenStream.isLastToken() &&
+        while(tokenStream.availableTokens() >= 1 &&
                 !nextIsTerminator() && precedence < nextPrecedence()){
             String nextLexeme = tokenStream.lookahead(1).getValue();
 
@@ -170,9 +170,14 @@ public class Parser {
                 tokenStream.getCurrentToken().getValue(), Arrays.asList(leftChild));
 
         if(!tokenStream.isLastToken()){
-            Integer operationPrecedence = currentPrecedence();
-            tokenStream.consume();
-            operation.addChild(parseExpressionRecursively(operationPrecedence));
+            if(!nextIsTerminator()){
+                Integer operationPrecedence = currentPrecedence();
+                tokenStream.consume();
+                operation.addChild(parseExpressionRecursively(operationPrecedence));
+            }
+            else{
+                reportUnexpectedToken("end of line", "right operand");
+            }
         }
         else{
             reportUnexpectedEndOfFile("right operand");
@@ -215,6 +220,11 @@ public class Parser {
         }
 
         if(reportIfUnexpectedEnd()){
+            return args;
+        }
+
+        if(tokenStream.isLastToken()){
+            reportUnexpectedEndOfFile("')'");
             return args;
         }
 
@@ -275,7 +285,7 @@ public class Parser {
             return parseUnaryOperator();
         }
 
-        reportUnexpectedToken(t.getValue());
+        reportUnexpectedToken("'" + t.getValue() + "'");
         return null;
     }
 
@@ -311,21 +321,31 @@ public class Parser {
 
 
     /**
-     * current token is 'while' or 'until'
+     * Current token is 'while' or 'until' <br/>
+     * Current token after execution is 'end'
      */
     private AstNode parseRepetition(){
         AstNode repetitionNode = new AstNode(AstNode.Type.REPETITION, tokenStream.getCurrentToken().getValue());
         tokenStream.consume();
 
+        if(tokenStream.isEnded()){
+            reportUnexpectedEndOfFile("condition");
+            return null;
+        }
+        if(tokenStream.getCurrentToken().getValue().equals("\n")){
+            reportUnexpectedToken("new line", "condition");
+            return null;
+        }
+
         // condition of repetition
         AstNode condition = new AstNode(AstNode.Type.CONDITION, null);
         condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
         repetitionNode.addChild(condition);
+        // here current tokens is last token of condition expression
 
-        if(!reportIfUnexpectedEnd()){
-            tokenStream.consume();
-        }
-        else{
+        tokenStream.consume();
+        if(tokenStream.isEnded()){
+            reportUnexpectedEndOfFile("new line");
             return null;
         }
         repetitionNode.addChild(parseBlock());
@@ -334,16 +354,16 @@ public class Parser {
             reportUnexpectedEndOfFile("'end'");
         }
         else if(!tokenStream.getCurrentToken().getValue().equals("end")){
-            reportUnexpectedToken(tokenStream.getCurrentToken().getValue(), "'end'");
+            reportUnexpectedToken("'" + tokenStream.getCurrentToken().getValue() + "'", "'end'");
         }
 
         return repetitionNode;
     }
 
     /**
-     * current token is 'class' <br/>
      * Class is sequence of methods
-     * After work current token is 'end' of class
+     * Current token is 'class' <br/>
+     * Current token after execution is 'end' of class
      */
     private AstNode parseClassDefinition(){
         if(!tokenStream.isLastToken()){
@@ -366,6 +386,11 @@ public class Parser {
                     }
 
                     tokenStream.consume();
+
+                    // skip \n
+                    while(!tokenStream.isLastToken() && isTerminator(tokenStream.lookahead(1))){
+                        tokenStream.consume();
+                    }
 
                     while(!tokenStream.isLastToken() && tokenStream.lookahead(1).getValue().equals("def")){
                         tokenStream.consume();
@@ -409,10 +434,20 @@ public class Parser {
      * Current token after execution is 'end' of parsed conditional
      */
     private AstNode parseConditional(){
+        if(tokenStream.isLastToken()){
+            reportUnexpectedEndOfFile("condition");
+            return null;
+        }
+
         AstNode conditional = new AstNode(AstNode.Type.CONDITIONAL, null);
 
         AstNode condition = new AstNode(AstNode.Type.CONDITION, "if");
         tokenStream.consume();
+
+        if(tokenStream.getCurrentToken().getValue().equals("\n")){
+            reportUnexpectedToken("end of line","condition");
+            return null;
+        }
 
         // add condition itself for 'if' statement as its left child
         condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
@@ -422,6 +457,13 @@ public class Parser {
             if(isTerminator(tokenStream.lookahead(1))){
                 condition.addChild(parseBlock());
             }
+            else{
+                reportUnexpectedToken(tokenStream.lookahead(1).getValue(), "new line");
+            }
+        }
+        else{
+            reportUnexpectedEndOfFile("new line");
+            return conditional;
         }
         conditional.addChild(condition);
 
@@ -430,6 +472,16 @@ public class Parser {
         while(!tokenStream.isEnded() && tokenStream.getCurrentToken().getValue().equals("elsif")){
             condition = new AstNode(AstNode.Type.CONDITION, "elsif");
             tokenStream.consume();
+
+            if(tokenStream.isEnded()){
+                reportUnexpectedEndOfFile("condition");
+                return null;
+            }
+
+            if(tokenStream.getCurrentToken().getValue().equals("\n")){
+                reportUnexpectedToken("end of line","condition");
+                return null;
+            }
 
             // add condition itself for 'elsif' statement as its left child
             condition.addChild(parseExpressionRecursively(LOWEST_PRECEDENCE));
@@ -491,6 +543,10 @@ public class Parser {
                         functionNode.addChild(parseFunctionParams()); // add parameters
 
                         // here current token is ')' or ',' or out of bounds of tokenStream
+                        if(tokenStream.isEnded()){
+//                            reportUnexpectedEndOfFile("new line");
+                            return functionNode;
+                        }
                         tokenStream.consume();
                         if(tokenStream.isEnded()){
                             reportUnexpectedEndOfFile("new line");
@@ -517,6 +573,7 @@ public class Parser {
             }
             else{
                 reportUnexpectedToken(nextToken.getValue(), "valid function name");
+                return null;
             }
         }
 
@@ -621,10 +678,12 @@ public class Parser {
         }
         tokenStream.consume();
 
-        reportIfUnexpectedEnd();
+        if(reportIfUnexpectedEnd()){
+            return null;
+        }
 
         if(!tokenStream.getCurrentToken().getValue().equals(")")){
-            reportUnexpectedEndOfFile("')'");
+            reportUnexpectedToken(tokenStream.getCurrentToken().getValue(), "')'");
         }
         return params;
     }
@@ -695,7 +754,7 @@ public class Parser {
     private Boolean reportIfUnexpectedEnd(){
         if(!tokenStream.isEnded()){
             if(isTerminator(tokenStream.getCurrentToken())){
-                reportUnexpectedToken("terminator token");
+                reportError("unexpected end of line");
                 return true;
             }
         }
@@ -750,13 +809,17 @@ public class Parser {
     }
 
     private void reportUnexpectedToken(String unexpectedLexeme, String expectedLexeme){
+        if(unexpectedLexeme.equals("\n")){
+            unexpectedLexeme = "end of line";
+        }
+
         System.out.println("Line " + tokenStream.currentLine() + ": " +
-                expectedLexeme + " expected, but " + unexpectedLexeme + "found");
+                expectedLexeme + " expected, but " + unexpectedLexeme + " found");
     }
 
     private void reportUnexpectedToken(String unexpectedLexeme){
         System.out.println("Line " + tokenStream.currentLine() + ": " +
-                " unexpected token " + unexpectedLexeme);
+                "unexpected token " + unexpectedLexeme);
     }
 
     private void reportError(String err){
